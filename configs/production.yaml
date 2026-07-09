@@ -1,0 +1,28 @@
+environment: production
+debug: false
+
+database:
+  postgres:
+    url: postgresql://protea_prod_user:protea_prod_secure_password@postgres-prod:5432/protea
+    pool_min_size: 10
+    pool_max_size: 50
+  neo4j:
+    uri: bolt://neo4j-prod:7687
+    user: neo4j
+    password: neo4j_prod_secure_password
+  redis:
+    host: redis-prod
+    port: 6379
+    db: 0
+  qdrant:
+    host: qdrant-prod
+    port: 6333
+  minio:
+    endpoint: s3.amazonaws.com
+    access_key: prod_aws_access_key
+    secret_key: prod_aws_secret_key
+    secure: true
+
+telemetry:
+  prometheus_enabled: true
+  otlp_endpoint: http://otel-collector:4317

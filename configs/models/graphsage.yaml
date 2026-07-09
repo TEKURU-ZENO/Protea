@@ -1,0 +1,13 @@
+model:
+  name: "graphsage-ppi"
+  version: "v1.0.0"
+  type: "link_prediction_gnn"
+  parameters:
+    input_dim: 1280 # from ESM embeddings
+    hidden_dims: [512, 256, 128]
+    output_dim: 128
+    dropout: 0.2
+    aggregator_type: "mean"
+    sample_sizes: [25, 10]
+    learning_rate: 0.001
+    weight_decay: 0.0005

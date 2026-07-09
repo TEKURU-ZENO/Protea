@@ -1,0 +1,6 @@
+gpu:
+  enabled: true
+  devices: "0,1"
+  memory_fraction: 0.85
+  allow_growth: true
+  precision: "float16" # mixed precision training config

@@ -1,0 +1,13 @@
+model:
+  name: "gat-v2-ppi"
+  version: "v1.0.0"
+  type: "interaction_prediction_gnn"
+  parameters:
+    input_dim: 1280
+    hidden_dims: [512, 256]
+    num_heads: [8, 8, 1]
+    output_dim: 128
+    dropout: 0.1
+    attention_dropout: 0.1
+    negative_slope: 0.2
+    learning_rate: 0.0005

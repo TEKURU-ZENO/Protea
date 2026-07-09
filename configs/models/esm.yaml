@@ -1,0 +1,13 @@
+model:
+  name: "esm-2-650m"
+  version: "v1.0.0"
+  type: "sequence_encoder"
+  parameters:
+    num_layers: 33
+    embed_dim: 1280
+    attention_heads: 20
+    max_sequence_length: 1024
+    dropout: 0.1
+    cramming:
+      enabled: true
+      target_train_hours: 24

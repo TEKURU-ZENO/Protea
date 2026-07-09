@@ -1,0 +1,28 @@
+environment: docker
+debug: true
+
+database:
+  postgres:
+    url: postgresql://protea_user:protea_secure_password@postgres:5432/protea
+    pool_min_size: 5
+    pool_max_size: 20
+  neo4j:
+    uri: bolt://neo4j:7687
+    user: neo4j
+    password: neo4j_secure_password
+  redis:
+    host: redis
+    port: 6379
+    db: 0
+  qdrant:
+    host: qdrant
+    port: 6333
+  minio:
+    endpoint: minio:9000
+    access_key: minio_admin
+    secret_key: minio_secure_password
+    secure: false
+
+telemetry:
+  prometheus_enabled: true
+  otlp_endpoint: http://otel-collector:4317

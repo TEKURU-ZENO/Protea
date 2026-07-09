@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1
+      - USE_GPU=true

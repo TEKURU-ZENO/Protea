@@ -1,0 +1,9 @@
+{
+  "name": "@protea/eslint-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "eslint-config-next": "15.0.0"
+  }
+}

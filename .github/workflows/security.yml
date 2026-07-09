@@ -1,0 +1,22 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Python security scanner (Bandit)
+      run: |
+        pip install bandit
+        bandit -r services/api/ -ll
+
+    - name: Run NPM audit
+      run: |
+        npm audit --audit-level=high
