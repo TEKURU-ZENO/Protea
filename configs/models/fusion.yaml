@@ -1,0 +1,11 @@
+model:
+  name: "cross_attention_fusion"
+  version: "v1.0.0"
+  type: "multimodal_fusion"
+  parameters:
+    sequence_dim: 1280 # default to ESM2 650M dimensions
+    structure_dim: 128
+    hidden_dim: 256
+    num_heads: 4
+    dropout: 0.1
+    output_dim: 1024 # canonical projected size

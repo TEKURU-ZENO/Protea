@@ -1,0 +1,10 @@
+model:
+  name: "esm2_t30_150M_UR50D"
+  version: "v1.0.0"
+  type: "sequence_encoder"
+  parameters:
+    num_layers: 30
+    embed_dim: 640
+    attention_heads: 20
+    max_sequence_length: 1024
+    dropout: 0.1
