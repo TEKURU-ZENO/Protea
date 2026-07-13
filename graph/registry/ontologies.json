@@ -1,0 +1,16 @@
+{
+  "ontologies": [
+    {
+      "name": "Gene Ontology (GO)",
+      "version": "2024-10-18",
+      "format": "OBO",
+      "namespace": "ontology/go/"
+    },
+    {
+      "name": "Disease Ontology (DOID)",
+      "version": "2024-09-01",
+      "format": "OBO",
+      "namespace": "ontology/doid/"
+    }
+  ]
+}

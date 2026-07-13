@@ -1,7 +1,6 @@
 // ============================================================================
 // PROTEA Knowledge Graph Schema Definition
-// Phase 1 - Constraints & Indexes ONLY (No data seeded)
-// Aligning with OptimusKG and Biolink standards.
+// Phase 3 - Constraints & Indexes ONLY (Ontology & Multi-scale support)
 // ============================================================================
 
 // --- PROTEIN CONSTRAINTS & INDEXES ---
@@ -53,3 +52,11 @@ FOR (t:Tissue) REQUIRE t.id IS UNIQUE;
 // --- PUBLICATION CONSTRAINTS & INDEXES ---
 CREATE CONSTRAINT publication_id_unique IF NOT EXISTS
 FOR (pub:Publication) REQUIRE pub.id IS UNIQUE;
+
+// --- INTERACTION NODE CONSTRAINTS & INDEXES ---
+CREATE CONSTRAINT interaction_id_unique IF NOT EXISTS
+FOR (i:Interaction) REQUIRE i.id IS UNIQUE;
+
+// --- TEMPORAL CONTEXT CONSTRAINTS & INDEXES ---
+CREATE CONSTRAINT temporal_id_unique IF NOT EXISTS
+FOR (tc:TemporalContext) REQUIRE tc.id IS UNIQUE;

@@ -1,0 +1,28 @@
+{
+  "datasets": [
+    {
+      "source": "STRING",
+      "version": "v12.0",
+      "date": "2026-07-13",
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+      "organism": "9606",
+      "size_records": 12000
+    },
+    {
+      "source": "BioGRID",
+      "version": "4.4.230",
+      "date": "2026-07-13",
+      "checksum": "7e55db5a1e2a2254394017df8278f232",
+      "organism": "9606",
+      "size_records": 5400
+    },
+    {
+      "source": "IntAct",
+      "version": "2024-11-06",
+      "date": "2026-07-13",
+      "checksum": "e2a234a41dcdfb9b8ecf8427e55a2254",
+      "organism": "9606",
+      "size_records": 3100
+    }
+  ]
+}

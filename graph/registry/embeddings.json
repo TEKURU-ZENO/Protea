@@ -1,0 +1,11 @@
+{
+  "embeddings": [
+    {
+      "method": "FastRP",
+      "version": "v1.0.0",
+      "dimension": 128,
+      "date": "2026-07-13",
+      "graph_version": "v1.0.0"
+    }
+  ]
+}

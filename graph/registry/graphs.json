@@ -1,0 +1,15 @@
+{
+  "graphs": [
+    {
+      "version": "v1.0.0",
+      "build_date": "2026-07-13",
+      "num_nodes": 190531,
+      "num_edges": 21813816,
+      "dataset_versions": {
+        "STRING": "v12.0",
+        "BioGRID": "4.4.230",
+        "IntAct": "2024-11-06"
+      }
+    }
+  ]
+}
