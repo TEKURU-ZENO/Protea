@@ -1,0 +1,3 @@
+{
+  "extends": "@protea/eslint-config"
+}
