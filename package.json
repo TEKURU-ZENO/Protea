@@ -1,6 +1,7 @@
 {
   "name": "protea",
   "version": "1.0.0",
+  "packageManager": "npm@10.8.2",
   "description": "PROTEA: An AI-Native Computational Interactomics Platform",
   "private": true,
   "workspaces": [
@@ -16,6 +17,9 @@
   },
   "devDependencies": {
     "prettier": "^3.2.5",
-    "turbo": "^1.13.0"
+    "turbo": "^2.10.5"
+  },
+  "dependencies": {
+    "next": "15.5.20"
   }
 }
