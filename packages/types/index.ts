@@ -15,7 +15,8 @@ export interface Interaction {
   sourceProteinId: string;
   targetProteinId: string;
   confidenceScore: number;
-  interactionType: 'phosphorylation' | 'ubiquitination' | 'binding' | 'regulatory' | 'unknown';
+  interactionType:
+    "phosphorylation" | "ubiquitination" | "binding" | "regulatory" | "unknown";
   tissueSpecificity?: string[];
   evidenceCodes: string[]; // e.g. ECO codes
   uncertaintyVariance?: number; // Bayesian uncertainty metric
@@ -27,7 +28,12 @@ export interface Mutation {
   wildType: string;
   mutant: string;
   deltaDeltaG?: number; // stability impact
-  pathogenicity?: 'benign' | 'likely_benign' | 'uncertain' | 'likely_pathogenic' | 'pathogenic';
+  pathogenicity?:
+    | "benign"
+    | "likely_benign"
+    | "uncertain"
+    | "likely_pathogenic"
+    | "pathogenic";
   clinicalContexts?: string[];
 }
 
@@ -47,7 +53,7 @@ export interface SimulationState {
 }
 
 export interface SystemStatus {
-  status: 'healthy' | 'unstable' | 'degraded';
+  status: "healthy" | "unstable" | "degraded";
   databases: {
     postgres: boolean;
     neo4j: boolean;

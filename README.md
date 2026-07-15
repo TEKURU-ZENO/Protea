@@ -37,6 +37,7 @@ PROTEA/
 ### Prerequisites
 
 Ensure you have the following installed:
+
 - [Docker & Docker Compose](https://www.docker.com/)
 - [Node.js (v18+)](https://nodejs.org/)
 - [uv (Python package installer/manager)](https://github.com/astral-sh/uv)
@@ -44,11 +45,13 @@ Ensure you have the following installed:
 ### Launching the Stack
 
 1. **Clone & Install Node Dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Start Infrastructure & Backend/Frontend Services**:
+
    ```bash
    docker compose up --build
    ```

@@ -14,6 +14,7 @@ We actively support and apply security patches to the following versions of PROT
 If you discover a security vulnerability within PROTEA, please report it immediately by contacting the maintainers. Do not open public GitHub issues for security vulnerabilities.
 
 Please include:
+
 - A description of the issue.
 - Steps to reproduce or a proof of concept.
 - The potential impact.

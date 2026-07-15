@@ -19,6 +19,7 @@ Thank you for your interest in contributing to PROTEA! As a research-grade compu
 ## Scientific Guidelines
 
 If your contribution updates biological algorithms, database schemas, or modeling engines:
+
 - Include unit/integration tests comparing performance against established benchmarks under `benchmarks/`.
 - Ensure changes to property graph schemas are reflected in `graph/knowledge_graph/seed_schema.cypher`.
 - Reference peer-reviewed literature or models (e.g. ESM-3, Boltz-2) in code comments and pull request descriptions.
