@@ -16,7 +16,7 @@ from services.api.core.storage import storage_client
 
 # Import sub-routers
 from services.api.routers import (
-    system, graph, protein, interaction, pathway, simulation, twins, agents
+    system, graph, protein, interaction, pathway, simulation, twins, agents, prediction
 )
 
 # Metrics definitions
@@ -121,6 +121,7 @@ app.include_router(pathway.router, prefix=api_v1_prefix)
 app.include_router(simulation.router, prefix=api_v1_prefix)
 app.include_router(twins.router, prefix=api_v1_prefix)
 app.include_router(agents.router, prefix=api_v1_prefix)
+app.include_router(prediction.router, prefix=api_v1_prefix)
 
 # --- Kubernetes-ready Health Checks & Observability ---
 
