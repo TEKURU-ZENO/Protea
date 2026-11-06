@@ -1,0 +1,137 @@
+# PROTEA - Pathway Intelligence Engine (PaIE) Configuration
+# Production & Research-grade Hyperparameters
+
+pathway_intelligence:
+  version: "1.0.0"
+  description: "AI-driven pathway discovery, community detection, causal reasoning, and functional annotation"
+
+  # 1. Ingestion Sources & Reference Databases
+  ingestion:
+    reactome:
+      enabled: true
+      cache_dir: "storage/pathways/reactome"
+      include_subpathways: true
+      min_pathway_size: 3
+      max_pathway_size: 500
+    kegg:
+      enabled: true
+      cache_dir: "storage/pathways/kegg"
+      species: "hsa"
+    wikipathways:
+      enabled: true
+      cache_dir: "storage/pathways/wikipathways"
+    pathway_commons:
+      enabled: true
+      data_format: "sif"
+
+  # 2. Functional Annotation & Gene Ontology
+  annotation:
+    gene_ontology:
+      aspects: ["BP", "MF", "CC"]  # Biological Process, Molecular Function, Cellular Component
+      min_depth: 2
+      max_depth: 14
+      evidence_filter: []          # Empty = all evidence codes accepted (EXP, IDA, IPI, IMP, IGI, IEP, IEA)
+    subcellular_localization:
+      compartments:
+        - "nucleus"
+        - "cytosol"
+        - "plasma_membrane"
+        - "mitochondria"
+        - "endoplasmic_reticulum"
+        - "extracellular"
+
+  # 3. Statistical Enrichment Analytics
+  enrichment:
+    ora:
+      test_type: "hypergeometric" # "hypergeometric" or "fisher_exact"
+      p_value_cutoff: 0.05
+      q_value_cutoff: 0.10
+      correction_method: "benjamini_hochberg" # "benjamini_hochberg", "bonferroni"
+      min_overlap: 2
+    gsea:
+      permutations: 1000
+      min_size: 15
+      max_size: 500
+      scoring_scheme: "weighted"
+    gsva:
+      kernel: "gaussian"
+      mx_diff: true
+
+  # 4. Community Discovery & Graph Clustering
+  discovery:
+    community_detection:
+      default_algorithm: "leiden" # "leiden", "louvain", "mcl", "wcc"
+      resolution: 1.0
+      n_iterations: 10
+      random_state: 42
+    mcl:
+      inflation: 2.0
+      expansion: 2
+      max_iterations: 100
+      pruning_threshold: 1e-5
+    subgraph_mining:
+      min_clique_size: 4
+      min_density: 0.65
+    motif_discovery:
+      motifs: ["feed_forward_loop", "bi_fan", "cascade", "feedback_loop"]
+
+  # 5. De Novo & "Dark Matter" Pathway Discovery
+  novelty:
+    dark_matter:
+      min_module_size: 4
+      max_annotation_ratio: 0.20   # Maximum fraction of proteins allowed to have known pathway annotations
+      min_cohesion_score: 0.60
+      min_mean_interaction_confidence: 0.70
+    guilt_by_association:
+      k_neighbors: 5
+      weight_by_confidence: true
+
+  # 6. Pathway Prediction & Gap-Filling
+  prediction:
+    gnn_model: "graphsage"
+    embedding_dim: 256
+    hidden_dim: 128
+    learning_rate: 0.001
+    dropout: 0.2
+    membership_threshold: 0.50
+    completion_top_k: 5
+
+  # 7. Causal Reasoning & Signaling Propagation
+  causal:
+    regulatory_types:
+      - "activates"
+      - "inhibits"
+      - "phosphorylates"
+      - "dephosphorylates"
+      - "ubiquitinates"
+      - "cleaves"
+      - "complex_formation"
+    propagation:
+      algorithm: "rwr"            # Random Walk with Restart
+      restart_probability: 0.30
+      max_iterations: 100
+      convergence_tolerance: 1e-6
+    shortest_paths:
+      k_paths: 3
+      weight_attribute: "confidence"
+
+  # 8. Cross-Species Mapping & Evolution
+  evolution:
+    reference_species: "human"
+    target_species:
+      - "mouse"
+      - "rat"
+      - "zebrafish"
+      - "drosophila"
+      - "yeast"
+    min_ortholog_identity: 0.40
+    conservation_threshold: 0.60
+
+  # 9. Explainability & Evidence Reasoning
+  explainability:
+    evidence_weights:
+      experimental: 1.0
+      database: 0.85
+      text_mining: 0.60
+      computational: 0.50
+    generate_narrative: true
