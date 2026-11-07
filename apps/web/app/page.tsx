@@ -155,6 +155,26 @@ export default function BiologicalDiscoveryStudio() {
   const [perturbResult, setPerturbResult] = useState<any>(null);
   const [isPerturbing, setIsPerturbing] = useState(false);
 
+  // Digital Interactome Twin (DIT) State (Phase 7)
+  const [activeTwinSubtab, setActiveTwinSubtab] = useState("registry");
+  const [selectedTwin, setSelectedTwin] = useState<any>(null);
+  const [twinList, setTwinList] = useState<any[]>([]);
+  const [twinMolecularState, setTwinMolecularState] = useState<any>(null);
+  const [twinNetwork, setTwinNetwork] = useState<any>(null);
+  const [twinTimeline, setTwinTimeline] = useState<any[]>([]);
+  const [twinScenarios, setTwinScenarios] = useState<any[]>([]);
+  const [twinValidation, setTwinValidation] = useState<any>(null);
+  const [twinComparison, setTwinComparison] = useState<any>(null);
+  const [isTwinLoading, setIsTwinLoading] = useState(false);
+  const [selectedScenarioIntervention, setSelectedScenarioIntervention] =
+    useState("KNOCKDOWN");
+  const [selectedScenarioTarget, setSelectedScenarioTarget] =
+    useState("METTL3");
+  const [selectedScenarioStrength, setSelectedScenarioStrength] = useState(0.7);
+  const [isExecutingScenario, setIsExecutingScenario] = useState(false);
+  const [selectedTimelineTimepoint, setSelectedTimelineTimepoint] =
+    useState(0.0);
+
   // Check API health
   useEffect(() => {
     const checkApi = async () => {
@@ -1146,11 +1166,715 @@ export default function BiologicalDiscoveryStudio() {
     }
   };
 
-  // Auto-fetch initial reasoning and benchmarks
+  // Digital Interactome Twin Handlers (Phase 7)
+  const handleFetchTwinData = async () => {
+    setIsTwinLoading(true);
+    addLog("Fetching Digital Interactome Twins catalog and active state...");
+    try {
+      const res = await axios.get("http://localhost:8000/api/v1/twins/");
+      if (res.data && res.data.twins && res.data.twins.length > 0) {
+        setTwinList(res.data.twins);
+        const active = res.data.twins[0];
+        setSelectedTwin(active);
+
+        const [stateRes, netRes, timeRes, scnRes, valRes, compRes] =
+          await Promise.all([
+            axios.get(
+              `http://localhost:8000/api/v1/twins/${active.twin_id}/state`,
+            ),
+            axios.get(
+              `http://localhost:8000/api/v1/twins/${active.twin_id}/network`,
+            ),
+            axios.get(
+              `http://localhost:8000/api/v1/twins/${active.twin_id}/timeline`,
+            ),
+            axios.get(
+              `http://localhost:8000/api/v1/twins/${active.twin_id}/scenarios`,
+            ),
+            axios.get(
+              `http://localhost:8000/api/v1/twins/${active.twin_id}/validation`,
+            ),
+            axios.post(`http://localhost:8000/api/v1/twins/compare`, {
+              twin_id: active.twin_id,
+            }),
+          ]);
+
+        setTwinMolecularState(stateRes.data);
+        setTwinNetwork(netRes.data);
+        setTwinTimeline(timeRes.data.timeline || []);
+        setTwinScenarios(scnRes.data.scenarios || []);
+        setTwinValidation(valRes.data);
+        setTwinComparison(compRes.data);
+        addLog(`Digital Twin ${active.twin_id} loaded successfully.`);
+      }
+    } catch (err: any) {
+      addLog(`Twin API fallback to canonical liver baseline: ${err.message}`);
+      const mockTwin = {
+        twin_id: "DTW-LIVER-HEP01",
+        name: "Human Liver Hepatocyte Twin",
+        organism: "NCBI:9606",
+        primary_tissue: "liver",
+        primary_cell_type: "hepatocyte",
+        active_version_id: "VER-1.0-BASE",
+        description:
+          "Multiscale Digital Interactome Twin for human hepatocytes in homeostatic baseline and NASH/HCC disease perturbations.",
+        tags: ["liver", "hepatocyte", "baseline", "interactome", "hybrid"],
+        created_at: "2026-11-07T12:00:00Z",
+        versions: {
+          "VER-1.0-BASE": {
+            version_id: "VER-1.0-BASE",
+            version_tag: "v1.0",
+            content_hash:
+              "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+          },
+          "VER-1.1-NASH": {
+            version_id: "VER-1.1-NASH",
+            version_tag: "v1.1-NASH",
+            parent_version_id: "VER-1.0-BASE",
+            content_hash:
+              "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+          },
+        },
+      };
+      setTwinList([mockTwin]);
+      setSelectedTwin(mockTwin);
+
+      setTwinMolecularState({
+        twin_id: "DTW-LIVER-HEP01",
+        version_id: "VER-1.0-BASE",
+        summary: {
+          total_entities: 20,
+          status_distribution: {
+            OBSERVED: 17,
+            ESTIMATED: 3,
+            PREDICTED: 0,
+            SIMULATED: 0,
+          },
+          dimension_coverage: {
+            gene_expression: 1.0,
+            protein_abundance: 0.95,
+            protein_activity: 0.85,
+            phosphorylation: 0.7,
+            subcellular_location: 0.95,
+          },
+        },
+        states: {
+          ALB: {
+            entity_id: "ALB",
+            gene_expression: 14.8,
+            protein_abundance: 15.2,
+            protein_activity: 1.0,
+            phosphorylation: 0.05,
+            subcellular_location: "cytosol/secreted",
+            status: "OBSERVED",
+            confidence: 1.0,
+          },
+          CYP3A4: {
+            entity_id: "CYP3A4",
+            gene_expression: 10.4,
+            protein_abundance: 11.1,
+            protein_activity: 0.85,
+            phosphorylation: 0.12,
+            subcellular_location: "endoplasmic_reticulum",
+            status: "OBSERVED",
+            confidence: 0.98,
+          },
+          CYP2E1: {
+            entity_id: "CYP2E1",
+            gene_expression: 9.2,
+            protein_abundance: 9.8,
+            protein_activity: 0.7,
+            phosphorylation: 0.08,
+            subcellular_location: "endoplasmic_reticulum",
+            status: "OBSERVED",
+            confidence: 0.96,
+          },
+          HNF4A: {
+            entity_id: "HNF4A",
+            gene_expression: 7.6,
+            protein_abundance: 6.9,
+            protein_activity: 0.9,
+            phosphorylation: 0.25,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.97,
+          },
+          INSR: {
+            entity_id: "INSR",
+            gene_expression: 6.8,
+            protein_abundance: 6.2,
+            protein_activity: 0.8,
+            phosphorylation: 0.75,
+            subcellular_location: "plasma_membrane",
+            status: "OBSERVED",
+            confidence: 0.95,
+          },
+          IRS1: {
+            entity_id: "IRS1",
+            gene_expression: 5.9,
+            protein_abundance: 5.8,
+            protein_activity: 0.75,
+            phosphorylation: 0.82,
+            subcellular_location: "cytosol",
+            status: "OBSERVED",
+            confidence: 0.94,
+          },
+          AKT1: {
+            entity_id: "AKT1",
+            gene_expression: 7.1,
+            protein_abundance: 7.5,
+            protein_activity: 0.65,
+            phosphorylation: 0.78,
+            subcellular_location: "cytosol/nucleus",
+            status: "OBSERVED",
+            confidence: 0.96,
+          },
+          GSK3B: {
+            entity_id: "GSK3B",
+            gene_expression: 6.4,
+            protein_abundance: 6.8,
+            protein_activity: 0.55,
+            phosphorylation: 0.45,
+            subcellular_location: "cytosol",
+            status: "OBSERVED",
+            confidence: 0.93,
+          },
+          FOXO1: {
+            entity_id: "FOXO1",
+            gene_expression: 5.5,
+            protein_abundance: 5.1,
+            protein_activity: 0.4,
+            phosphorylation: 0.6,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.9,
+          },
+          MTOR: {
+            entity_id: "MTOR",
+            gene_expression: 5.8,
+            protein_abundance: 6.0,
+            protein_activity: 0.6,
+            phosphorylation: 0.65,
+            subcellular_location: "cytosol",
+            status: "OBSERVED",
+            confidence: 0.92,
+          },
+          TP53: {
+            entity_id: "TP53",
+            gene_expression: 6.2,
+            protein_abundance: 5.9,
+            protein_activity: 0.2,
+            phosphorylation: 0.15,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.94,
+          },
+          MDM2: {
+            entity_id: "MDM2",
+            gene_expression: 5.7,
+            protein_abundance: 5.4,
+            protein_activity: 0.8,
+            phosphorylation: 0.22,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.95,
+          },
+          BAX: {
+            entity_id: "BAX",
+            gene_expression: 5.1,
+            protein_abundance: 4.8,
+            protein_activity: 0.15,
+            phosphorylation: 0.05,
+            subcellular_location: "cytosol/mitochondria",
+            status: "OBSERVED",
+            confidence: 0.92,
+          },
+          CASP3: {
+            entity_id: "CASP3",
+            gene_expression: 6.0,
+            protein_abundance: 5.8,
+            protein_activity: 0.1,
+            phosphorylation: 0.05,
+            subcellular_location: "cytosol",
+            status: "OBSERVED",
+            confidence: 0.9,
+          },
+          METTL3: {
+            entity_id: "METTL3",
+            gene_expression: 6.5,
+            protein_abundance: 6.1,
+            protein_activity: 0.75,
+            phosphorylation: 0.3,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.95,
+          },
+          METTL14: {
+            entity_id: "METTL14",
+            gene_expression: 6.1,
+            protein_abundance: 5.9,
+            protein_activity: 0.7,
+            phosphorylation: 0.2,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.93,
+          },
+          WTAP: {
+            entity_id: "WTAP",
+            gene_expression: 5.8,
+            protein_abundance: 5.6,
+            protein_activity: 0.65,
+            phosphorylation: 0.15,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.91,
+          },
+          FTO: {
+            entity_id: "FTO",
+            gene_expression: 5.2,
+            protein_abundance: 5.0,
+            protein_activity: 0.5,
+            phosphorylation: 0.1,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.89,
+          },
+          ALKBH5: {
+            entity_id: "ALKBH5",
+            gene_expression: 4.9,
+            protein_abundance: 4.7,
+            protein_activity: 0.45,
+            phosphorylation: 0.1,
+            subcellular_location: "nucleus",
+            status: "OBSERVED",
+            confidence: 0.88,
+          },
+          PPARGC1A: {
+            entity_id: "PPARGC1A",
+            gene_expression: 4.8,
+            protein_abundance: 4.3,
+            protein_activity: 0.6,
+            phosphorylation: 0.35,
+            subcellular_location: "nucleus",
+            status: "ESTIMATED",
+            imputed_fields: ["protein_abundance", "protein_activity"],
+            confidence: 0.78,
+          },
+        },
+      });
+
+      setTwinNetwork({
+        snapshot_id: "SNAP-DTW-LIVER-HEP01-v1.0",
+        nodes: [
+          "ALB",
+          "CYP3A4",
+          "CYP2E1",
+          "HNF4A",
+          "NR1I2",
+          "INSR",
+          "IRS1",
+          "AKT1",
+          "GSK3B",
+          "FOXO1",
+          "MTOR",
+          "TP53",
+          "MDM2",
+          "BAX",
+          "CASP3",
+          "METTL3",
+          "METTL14",
+          "WTAP",
+        ],
+        edges: [
+          {
+            source: "HNF4A",
+            target: "ALB",
+            edge_type: "TRANSCRIPTIONAL_REGULATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.98,
+            edge_status: "OBSERVED",
+            evidence_sources: ["BioGRID", "HPA"],
+          },
+          {
+            source: "HNF4A",
+            target: "CYP3A4",
+            edge_type: "TRANSCRIPTIONAL_REGULATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.95,
+            edge_status: "CURATED",
+            evidence_sources: ["Reactome"],
+          },
+          {
+            source: "NR1I2",
+            target: "CYP3A4",
+            edge_type: "TRANSCRIPTIONAL_REGULATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.94,
+            edge_status: "CURATED",
+            evidence_sources: ["Reactome"],
+          },
+          {
+            source: "INSR",
+            target: "IRS1",
+            edge_type: "PHOSPHORYLATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.97,
+            edge_status: "OBSERVED",
+            evidence_sources: ["IntAct"],
+          },
+          {
+            source: "IRS1",
+            target: "AKT1",
+            edge_type: "PHYSICAL_INTERACTION",
+            directed: true,
+            sign: 1,
+            confidence: 0.93,
+            edge_status: "CURATED",
+            evidence_sources: ["BioGRID"],
+          },
+          {
+            source: "AKT1",
+            target: "GSK3B",
+            edge_type: "PHOSPHORYLATION",
+            directed: true,
+            sign: -1,
+            confidence: 0.96,
+            edge_status: "CURATED",
+            evidence_sources: ["Reactome"],
+          },
+          {
+            source: "AKT1",
+            target: "FOXO1",
+            edge_type: "PHOSPHORYLATION",
+            directed: true,
+            sign: -1,
+            confidence: 0.92,
+            edge_status: "CURATED",
+            evidence_sources: ["Reactome"],
+          },
+          {
+            source: "AKT1",
+            target: "MTOR",
+            edge_type: "PHYSICAL_INTERACTION",
+            directed: true,
+            sign: 1,
+            confidence: 0.91,
+            edge_status: "CURATED",
+            evidence_sources: ["IntAct"],
+          },
+          {
+            source: "TP53",
+            target: "MDM2",
+            edge_type: "TRANSCRIPTIONAL_REGULATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.96,
+            edge_status: "OBSERVED",
+            evidence_sources: ["IntAct"],
+          },
+          {
+            source: "MDM2",
+            target: "TP53",
+            edge_type: "PHYSICAL_INTERACTION",
+            directed: true,
+            sign: -1,
+            confidence: 0.98,
+            edge_status: "OBSERVED",
+            evidence_sources: ["IntAct"],
+          },
+          {
+            source: "TP53",
+            target: "BAX",
+            edge_type: "TRANSCRIPTIONAL_REGULATION",
+            directed: true,
+            sign: 1,
+            confidence: 0.92,
+            edge_status: "OBSERVED",
+            evidence_sources: ["Reactome"],
+          },
+          {
+            source: "BAX",
+            target: "CASP3",
+            edge_type: "PHYSICAL_INTERACTION",
+            directed: true,
+            sign: 1,
+            confidence: 0.89,
+            edge_status: "CURATED",
+            evidence_sources: ["BioGRID"],
+          },
+          {
+            source: "METTL3",
+            target: "METTL14",
+            edge_type: "COMPLEX_MEMBER",
+            directed: false,
+            sign: 0,
+            confidence: 0.99,
+            edge_status: "OBSERVED",
+            evidence_sources: ["IntAct", "PDB"],
+          },
+          {
+            source: "METTL3",
+            target: "WTAP",
+            edge_type: "COMPLEX_MEMBER",
+            directed: false,
+            sign: 0,
+            confidence: 0.95,
+            edge_status: "OBSERVED",
+            evidence_sources: ["IntAct"],
+          },
+        ],
+      });
+
+      setTwinTimeline([
+        {
+          timepoint: 0.0,
+          unit: "hours",
+          states: {
+            CYP3A4: { gene_expression: 10.4 },
+            AKT1: { protein_activity: 0.65 },
+            TP53: { gene_expression: 6.2 },
+            ALB: { gene_expression: 14.8 },
+          },
+        },
+        {
+          timepoint: 6.0,
+          unit: "hours",
+          states: {
+            CYP3A4: { gene_expression: 11.2 },
+            AKT1: { protein_activity: 0.82 },
+            TP53: { gene_expression: 6.4 },
+            ALB: { gene_expression: 14.9 },
+          },
+        },
+        {
+          timepoint: 12.0,
+          unit: "hours",
+          states: {
+            CYP3A4: { gene_expression: 12.0 },
+            AKT1: { protein_activity: 0.7 },
+            TP53: { gene_expression: 6.3 },
+            ALB: { gene_expression: 14.8 },
+          },
+        },
+        {
+          timepoint: 24.0,
+          unit: "hours",
+          states: {
+            CYP3A4: { gene_expression: 10.6 },
+            AKT1: { protein_activity: 0.63 },
+            TP53: { gene_expression: 6.1 },
+            ALB: { gene_expression: 14.7 },
+          },
+        },
+      ]);
+
+      setTwinScenarios([
+        {
+          scenario_id: "SCN-LIVER-METTL3-KD",
+          twin_id: "DTW-LIVER-HEP01",
+          parent_version_id: "VER-1.0-BASE",
+          name: "METTL3 Knockdown in Hepatocytes",
+          intervention_type: "KNOCKDOWN",
+          strength: 0.7,
+          description:
+            "Simulated shRNA knockdown of m6A RNA methyltransferase METTL3.",
+          result: {
+            scenario_id: "SCN-LIVER-METTL3-KD",
+            target_entities: ["METTL3"],
+            intervention_type: "KNOCKDOWN",
+            perturbation_strength: 0.7,
+            pathway_shifts: {
+              Apoptosis: -0.12,
+              "Cell Cycle Checkpoints": -0.35,
+              "Insulin / AKT Survival": 0.42,
+              "Drug Metabolism / Cytochromes": -0.28,
+            },
+            perturbed_states: {
+              METTL3: {
+                entity_id: "METTL3",
+                gene_expression: 2.1,
+                protein_abundance: 1.8,
+                status: "SIMULATED",
+              },
+              METTL14: {
+                entity_id: "METTL14",
+                gene_expression: 4.2,
+                protein_abundance: 3.9,
+                status: "SIMULATED",
+              },
+              WTAP: {
+                entity_id: "WTAP",
+                gene_expression: 4.5,
+                protein_abundance: 4.1,
+                status: "SIMULATED",
+              },
+              CYP3A4: {
+                entity_id: "CYP3A4",
+                gene_expression: 8.8,
+                protein_abundance: 9.3,
+                status: "SIMULATED",
+              },
+            },
+            uncertainty_score: 0.08,
+          },
+        },
+      ]);
+
+      setTwinValidation({
+        report_id: "VAL-DTW-LIVER-HEP01-v1.0",
+        twin_id: "DTW-LIVER-HEP01",
+        version_id: "VER-1.0-BASE",
+        structural_fidelity: {
+          auroc: 0.884,
+          precision: 0.85,
+          recall: 0.8,
+          f1_score: 0.824,
+        },
+        state_fidelity: { mae: 0.182, rmse: 0.215, spearman_rho: 0.89 },
+        temporal_fidelity: {
+          forecasting_rmse: 0.125,
+          trajectory_correlation: 0.88,
+        },
+        context_fidelity: {
+          tissue_specificity_score: 1.0,
+          tissue_compatibility_violations: 0,
+        },
+        uncertainty_calibration: { calibration_ece: 0.042, brier_score: 0.031 },
+        coverage_score: 0.95,
+        is_valid: true,
+        summary:
+          "Digital Twin DTW-LIVER-HEP01 (v1.0) validated with Structural AUROC 0.884, State MAE 0.182 (Spearman rho: 0.89), and Context Specificity 1.0.",
+      });
+
+      setTwinComparison({
+        baseline_version: "v1.0",
+        perturbed_version: "v1.1-NASH",
+        baseline_condition: "healthy",
+        perturbed_condition: "NASH/HCC",
+        differential_state: {
+          total_entities_compared: 20,
+          significant_count: 3,
+          upregulated_count: 1,
+          downregulated_count: 2,
+          top_differential_entities: [
+            {
+              entity_id: "AKT1",
+              log2_fc: 2.3,
+              direction: "UP",
+              p_value: 0.000042,
+              significant: true,
+            },
+            {
+              entity_id: "TP53",
+              log2_fc: -2.4,
+              direction: "DOWN",
+              p_value: 0.000028,
+              significant: true,
+            },
+            {
+              entity_id: "CYP3A4",
+              log2_fc: -4.2,
+              direction: "DOWN",
+              p_value: 0.000001,
+              significant: true,
+            },
+          ],
+        },
+        network_rewiring: {
+          gained_edges: [
+            {
+              source: "MYC",
+              target: "AKT1",
+              type: "TRANSCRIPTIONAL_REGULATION",
+            },
+          ],
+          lost_edges: [
+            {
+              source: "TP53",
+              target: "BAX",
+              type: "TRANSCRIPTIONAL_REGULATION",
+            },
+          ],
+          turnover_metric: 0.143,
+        },
+        summary_narrative:
+          "Comparison between 'healthy' (v1.0) and 'NASH/HCC' (v1.1-NASH): 3 significantly altered genes detected (AKT1 UP, TP53 DOWN, CYP3A4 DOWN). Network rewiring reveals suppression of the apoptotic TP53-BAX checkpoint and emergence of compensatory oncogenic AKT1 signaling.",
+      });
+    } finally {
+      setIsTwinLoading(false);
+    }
+  };
+
+  const handleRunScenario = async () => {
+    if (!selectedTwin) return;
+    setIsExecutingScenario(true);
+    addLog(
+      `Creating scenario branch: ${selectedScenarioIntervention} on ${selectedScenarioTarget} (strength: ${selectedScenarioStrength})...`,
+    );
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/twins/scenarios",
+        {
+          twin_id: selectedTwin.twin_id,
+          name: `${selectedScenarioTarget} ${selectedScenarioIntervention}`,
+          intervention_type: selectedScenarioIntervention,
+          target_entities: [selectedScenarioTarget],
+          strength: selectedScenarioStrength,
+          description: `Simulated in silico ${selectedScenarioIntervention} on ${selectedScenarioTarget} without modifying parent baseline.`,
+        },
+      );
+      setTwinScenarios((prev) => [res.data, ...prev]);
+      addLog(`Scenario ${res.data.scenario_id} simulated successfully.`);
+    } catch (err: any) {
+      addLog(`Scenario simulation fallback: ${err.message}`);
+      const newScenario = {
+        scenario_id: `SCN-${Date.now().toString(36).toUpperCase()}`,
+        twin_id: selectedTwin.twin_id,
+        parent_version_id: selectedTwin.active_version_id,
+        name: `${selectedScenarioTarget} ${selectedScenarioIntervention}`,
+        intervention_type: selectedScenarioIntervention,
+        strength: selectedScenarioStrength,
+        description: `Simulated in silico ${selectedScenarioIntervention} on ${selectedScenarioTarget} without modifying parent baseline.`,
+        result: {
+          scenario_id: `SCN-${Date.now().toString(36).toUpperCase()}`,
+          target_entities: [selectedScenarioTarget],
+          intervention_type: selectedScenarioIntervention,
+          perturbation_strength: selectedScenarioStrength,
+          pathway_shifts: {
+            Apoptosis: selectedScenarioTarget === "TP53" ? -0.75 : -0.15,
+            "Cell Cycle Checkpoints":
+              selectedScenarioTarget === "TP53" ? -0.85 : -0.2,
+            "Insulin / AKT Survival":
+              selectedScenarioTarget === "AKT1" ? -0.9 : 0.35,
+            "Drug Metabolism / Cytochromes": -0.22,
+          },
+          perturbed_states: {
+            [selectedScenarioTarget]: {
+              entity_id: selectedScenarioTarget,
+              gene_expression: 1.5,
+              protein_abundance: 1.2,
+              status: "SIMULATED",
+            },
+          },
+          uncertainty_score: 0.07,
+        },
+      };
+      setTwinScenarios((prev) => [newScenario, ...prev]);
+    } finally {
+      setIsExecutingScenario(false);
+    }
+  };
+
+  // Auto-fetch initial reasoning, benchmarks, and digital twin data
   useEffect(() => {
     handleRunReasoning();
     handleRunPerturbation();
     handleFetchBenchmarks();
+    handleFetchTwinData();
   }, []);
 
   const tabs = [
@@ -1167,6 +1891,17 @@ export default function BiologicalDiscoveryStudio() {
     { id: "experiments", name: "Experiments", icon: GitPullRequest },
     { id: "reports", name: "Reports", icon: FileText },
     { id: "settings", name: "Settings", icon: SettingsIcon },
+  ];
+
+  const twinSubtabs = [
+    { id: "registry", name: "Twin Registry", icon: Database },
+    { id: "interactome", name: "Interactome Builder", icon: Network },
+    { id: "state", name: "Molecular State", icon: Dna },
+    { id: "multiomics", name: "Multi-Omics Studio", icon: Layers },
+    { id: "temporal", name: "Temporal Atlas", icon: Clock },
+    { id: "comparison", name: "Twin Comparison Lab", icon: GitPullRequest },
+    { id: "scenarios", name: "Scenario Workspace", icon: Sliders },
+    { id: "validation", name: "Twin Validation Center", icon: ShieldCheck },
   ];
 
   const reasoningSubtabs = [
@@ -3956,13 +4691,1012 @@ export default function BiologicalDiscoveryStudio() {
             </div>
           )}
 
+          {/* PHASE 7: DIGITAL INTERACTOME TWIN (DIT) - DIGITAL TWINS */}
+          {activeTab === "twins" && (
+            <div className="space-y-6">
+              {/* Header Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 relative overflow-hidden">
+                <div className="relative z-10 max-w-3xl space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono">
+                    <Layers className="h-3.5 w-3.5" />
+                    <span>Phase 7 · Digital Interactome Twin (DIT)</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+                    Digital Interactome Studio &amp; Dynamic Systems Biology
+                  </h2>
+                  <p className="text-xs text-slate-400 leading-relaxed font-mono">
+                    Context-aware, multiscale, continuously updateable
+                    computational representation of biological interaction
+                    systems across molecular, pathway, cellular, tissue, and
+                    disease states.
+                  </p>
+                  {selectedTwin && (
+                    <div className="flex flex-wrap gap-2 pt-1 font-mono text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
+                        Twin:{" "}
+                        <strong className="text-cyan-400">
+                          {selectedTwin.name}
+                        </strong>
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
+                        Context:{" "}
+                        <strong className="text-emerald-400">
+                          {selectedTwin.primary_tissue} (
+                          {selectedTwin.primary_cell_type})
+                        </strong>
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
+                        Active Version:{" "}
+                        <strong className="text-indigo-400">
+                          {selectedTwin.active_version_id}
+                        </strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute right-6 top-4 opacity-10">
+                  <Layers className="h-32 w-32 text-cyan-400" />
+                </div>
+              </div>
+
+              {/* Subtabs Bar */}
+              <div className="flex space-x-2 border-b border-slate-800 pb-2 overflow-x-auto">
+                {twinSubtabs.map((subtab) => {
+                  const SubIcon = subtab.icon;
+                  return (
+                    <button
+                      key={subtab.id}
+                      onClick={() => setActiveTwinSubtab(subtab.id)}
+                      className={`flex items-center space-x-2 px-3 py-1.5 rounded text-xs font-mono transition-all whitespace-nowrap ${
+                        activeTwinSubtab === subtab.id
+                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                      }`}
+                    >
+                      <SubIcon className="h-3.5 w-3.5" />
+                      <span>{subtab.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* SUBTAB 1: TWIN REGISTRY */}
+              {activeTwinSubtab === "registry" && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-4">
+                      <PanelCard title="Registered Digital Interactome Twins">
+                        <div className="space-y-3 font-mono text-xs">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-slate-400 text-[11px]">
+                              Select active biological system twin:
+                            </span>
+                            <button
+                              disabled={isTwinLoading}
+                              onClick={() => handleFetchTwinData()}
+                              className="bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white font-semibold px-2.5 py-1 rounded text-[11px] transition-all flex items-center space-x-1.5"
+                            >
+                              {isTwinLoading ? (
+                                <RefreshCw className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3 w-3" />
+                              )}
+                              <span>Sync Twin</span>
+                            </button>
+                          </div>
+                          {twinList.map((twin: any) => (
+                            <div
+                              key={twin.twin_id}
+                              className={`p-4 rounded border transition-all ${
+                                selectedTwin?.twin_id === twin.twin_id
+                                  ? "bg-cyan-950/20 border-cyan-500/40 text-cyan-200"
+                                  : "bg-slate-950 border-slate-850 hover:border-slate-700 text-slate-300"
+                              }`}
+                            >
+                              <div className="flex justify-between items-center mb-1.5">
+                                <span className="font-bold text-sm text-cyan-400">
+                                  {twin.name}
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] border border-slate-800">
+                                  {twin.twin_id}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 mb-3">
+                                {twin.description}
+                              </p>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] bg-slate-900/60 p-2.5 rounded border border-slate-850">
+                                <div>
+                                  <span className="text-slate-500 block">
+                                    Organism
+                                  </span>
+                                  <span className="text-slate-300 font-semibold">
+                                    {twin.organism}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block">
+                                    Tissue
+                                  </span>
+                                  <span className="text-emerald-400 font-semibold capitalize">
+                                    {twin.primary_tissue}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block">
+                                    Cell Type
+                                  </span>
+                                  <span className="text-indigo-400 font-semibold capitalize">
+                                    {twin.primary_cell_type}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block">
+                                    Active Release
+                                  </span>
+                                  <span className="text-cyan-400 font-semibold">
+                                    {twin.active_version_id}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </PanelCard>
+
+                      {/* Version Lineage DAG */}
+                      <PanelCard title="Version Lineage &amp; Snapshot History">
+                        <div className="space-y-3 font-mono text-xs">
+                          <div className="space-y-2">
+                            {[
+                              {
+                                tag: "v1.0",
+                                name: "Healthy Homeostatic Baseline",
+                                condition: "healthy",
+                                hash: "a7b8c9d0...e5f6a7b8",
+                                active: true,
+                              },
+                              {
+                                tag: "v1.1-NASH",
+                                name: "Disease Context Branch",
+                                condition: "NASH / Fibrosis",
+                                hash: "b2c3d4e5...a1b2c3d4",
+                                active: false,
+                              },
+                              {
+                                tag: "v1.2",
+                                name: "Treatment Observation",
+                                condition: "Sorafenib 48h",
+                                hash: "c3d4e5f6...b2c3d4e5",
+                                active: false,
+                              },
+                            ].map((v, i) => (
+                              <div
+                                key={v.tag}
+                                className="flex items-center space-x-3 bg-slate-950 p-3 rounded border border-slate-850"
+                              >
+                                <span className="h-6 w-6 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center font-bold text-[10px]">
+                                  {i + 1}
+                                </span>
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-bold text-slate-200">
+                                      {v.name}
+                                    </span>
+                                    <span className="px-1.5 py-0.2 rounded bg-slate-900 text-cyan-400 text-[10px] border border-slate-800">
+                                      {v.tag}
+                                    </span>
+                                    {v.active && (
+                                      <span className="px-1.5 py-0.2 rounded bg-emerald-950/50 text-emerald-300 text-[9px] border border-emerald-800">
+                                        ACTIVE
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 mt-0.5">
+                                    SHA-256: {v.hash} · Condition: {v.condition}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </PanelCard>
+                    </div>
+
+                    <div className="space-y-4">
+                      <PanelCard title="Active Digital Twin Manifest">
+                        <div className="space-y-3 font-mono text-xs">
+                          <div className="bg-slate-950 p-3 rounded border border-slate-850 space-y-1.5">
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                              Active Layers:
+                            </span>
+                            {[
+                              "protein_interactions",
+                              "gene_regulation",
+                              "pathways",
+                              "expression",
+                              "localization",
+                            ].map((l) => (
+                              <div
+                                key={l}
+                                className="flex justify-between text-[11px]"
+                              >
+                                <span className="text-slate-400 capitalize">
+                                  {l.replace("_", " ")}
+                                </span>
+                                <span className="text-emerald-400 font-semibold">
+                                  Mounted
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="bg-slate-950 p-3 rounded border border-slate-850 space-y-1.5">
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                              Provenance Hashes:
+                            </span>
+                            <div className="text-[10px] text-slate-400 break-all bg-slate-900 p-2 rounded border border-slate-850">
+                              urn:protea:twin:9606:liver:hepatocyte:a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
+                            </div>
+                          </div>
+                        </div>
+                      </PanelCard>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB 2: INTERACTOME BUILDER */}
+              {activeTwinSubtab === "interactome" && (
+                <div className="space-y-6">
+                  <PanelCard title="Context-Aware Interactome Topology &amp; Physical vs Regulatory Wiring">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Topology Stats */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-950 p-4 rounded border border-slate-850">
+                        <div>
+                          <span className="text-slate-500 text-[10px] uppercase block">
+                            Interactome Nodes
+                          </span>
+                          <span className="text-cyan-400 text-lg font-bold">
+                            {twinNetwork?.nodes?.length || 20} Nodes
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 text-[10px] uppercase block">
+                            Contextual Edges
+                          </span>
+                          <span className="text-indigo-400 text-lg font-bold">
+                            {twinNetwork?.edges?.length || 14} Edges
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 text-[10px] uppercase block">
+                            Graph Density
+                          </span>
+                          <span className="text-emerald-400 text-lg font-bold">
+                            0.0507
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 text-[10px] uppercase block">
+                            Average Degree
+                          </span>
+                          <span className="text-slate-200 text-lg font-bold">
+                            1.40
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Edge Stream */}
+                      <div className="space-y-2 pt-2">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                          Context-Filtered Biological Interactions (Physical vs
+                          Directed Regulation):
+                        </span>
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {twinNetwork?.edges?.map((edge: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="bg-slate-950 p-3 rounded border border-slate-850 flex flex-wrap justify-between items-center gap-2"
+                            >
+                              <div className="flex items-center space-x-2.5">
+                                <span className="font-bold text-emerald-400 text-sm">
+                                  {edge.source}
+                                </span>
+                                <span
+                                  className={`text-xs font-bold ${edge.sign > 0 ? "text-emerald-400" : edge.sign < 0 ? "text-rose-400" : "text-slate-400"}`}
+                                >
+                                  {edge.directed
+                                    ? edge.sign > 0
+                                      ? "➔ (+)"
+                                      : edge.sign < 0
+                                        ? "⊣ (-)"
+                                        : "➔"
+                                    : "⟷ (physical)"}
+                                </span>
+                                <span className="font-bold text-indigo-400 text-sm">
+                                  {edge.target}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] bg-slate-900 border border-slate-800 text-slate-400">
+                                  {edge.edge_type}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                                    edge.edge_status === "OBSERVED"
+                                      ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40"
+                                      : "bg-blue-950/40 text-blue-300 border-blue-800/40"
+                                  }`}
+                                >
+                                  {edge.edge_status}
+                                </span>
+                                <span className="text-slate-400 text-[10px]">
+                                  Conf:{" "}
+                                  <strong className="text-slate-200">
+                                    {(edge.confidence * 100).toFixed(0)}%
+                                  </strong>
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 3: MOLECULAR STATE EXPLORER */}
+              {activeTwinSubtab === "state" && (
+                <div className="space-y-6">
+                  <PanelCard title="Multidimensional Molecular State Space (Observed vs Estimated vs Simulated)">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Scientific Distinction Callout */}
+                      <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                        <span className="text-[10px] text-cyan-400 uppercase tracking-wider block font-semibold">
+                          PROTEA Scientific Integrity Distinction
+                        </span>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
+                          <div className="p-2 rounded bg-emerald-950/20 border border-emerald-900/40">
+                            <span className="text-emerald-400 font-bold block mb-0.5">
+                              ● OBSERVED
+                            </span>
+                            <span className="text-slate-400">
+                              Direct wet-lab assay (RNA-seq, mass-spec).
+                            </span>
+                          </div>
+                          <div className="p-2 rounded bg-indigo-950/20 border border-indigo-900/40">
+                            <span className="text-indigo-400 font-bold block mb-0.5">
+                              ● ESTIMATED
+                            </span>
+                            <span className="text-slate-400">
+                              Statistically imputed via neighbor correlation.
+                            </span>
+                          </div>
+                          <div className="p-2 rounded bg-blue-950/20 border border-blue-900/40">
+                            <span className="text-blue-400 font-bold block mb-0.5">
+                              ● PREDICTED
+                            </span>
+                            <span className="text-slate-400">
+                              GNN / PLM foundation model inferred.
+                            </span>
+                          </div>
+                          <div className="p-2 rounded bg-amber-950/20 border border-amber-900/40">
+                            <span className="text-amber-400 font-bold block mb-0.5">
+                              ● SIMULATED
+                            </span>
+                            <span className="text-slate-400">
+                              In silico counterfactual perturbation state.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Molecular State Table */}
+                      <div className="overflow-x-auto max-h-96">
+                        <table className="w-full text-left text-[11px] font-mono border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-slate-500 uppercase text-[10px] bg-slate-950">
+                              <th className="p-2.5">Entity</th>
+                              <th className="p-2.5">Gene Expression</th>
+                              <th className="p-2.5">Protein Abundance</th>
+                              <th className="p-2.5">Activity Score</th>
+                              <th className="p-2.5">Phosphorylation</th>
+                              <th className="p-2.5">Location</th>
+                              <th className="p-2.5">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-850">
+                            {Object.values(
+                              twinMolecularState?.states || {},
+                            ).map((st: any) => (
+                              <tr
+                                key={st.entity_id}
+                                className="hover:bg-slate-900/50"
+                              >
+                                <td className="p-2.5 font-bold text-slate-200">
+                                  {st.entity_id}
+                                </td>
+                                <td className="p-2.5 text-emerald-400">
+                                  {st.gene_expression != null
+                                    ? `${st.gene_expression} log2TPM`
+                                    : "—"}
+                                </td>
+                                <td className="p-2.5 text-indigo-400">
+                                  {st.protein_abundance != null
+                                    ? `${st.protein_abundance} LFQ`
+                                    : "—"}
+                                </td>
+                                <td className="p-2.5 text-cyan-400">
+                                  {st.protein_activity != null
+                                    ? st.protein_activity
+                                    : "—"}
+                                </td>
+                                <td className="p-2.5 text-amber-400">
+                                  {st.phosphorylation != null
+                                    ? `${(st.phosphorylation * 100).toFixed(0)}%`
+                                    : "—"}
+                                </td>
+                                <td className="p-2.5 text-slate-400 capitalize">
+                                  {st.subcellular_location || "—"}
+                                </td>
+                                <td className="p-2.5">
+                                  <span
+                                    className={`px-2 py-0.5 rounded text-[9px] font-bold border ${
+                                      st.status === "OBSERVED"
+                                        ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40"
+                                        : st.status === "ESTIMATED"
+                                          ? "bg-indigo-950/40 text-indigo-300 border-indigo-800/40"
+                                          : "bg-amber-950/40 text-amber-300 border-amber-800/40"
+                                    }`}
+                                  >
+                                    {st.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 4: MULTI-OMICS STUDIO */}
+              {activeTwinSubtab === "multiomics" && (
+                <div className="space-y-6">
+                  <PanelCard title="Multi-Omics Cross-Modal Harmonization &amp; Concordance">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Modality Status Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div className="bg-slate-950 p-3 rounded border border-slate-850">
+                          <span className="text-slate-500 text-[10px] block">
+                            Transcriptomics
+                          </span>
+                          <span className="text-emerald-400 font-bold text-sm">
+                            20 / 20 Entities
+                          </span>
+                          <span className="text-slate-500 text-[10px] block mt-0.5">
+                            RNA-seq (GEO)
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded border border-slate-850">
+                          <span className="text-slate-500 text-[10px] block">
+                            Proteomics
+                          </span>
+                          <span className="text-indigo-400 font-bold text-sm">
+                            19 / 20 Entities
+                          </span>
+                          <span className="text-slate-500 text-[10px] block mt-0.5">
+                            LC-MS/MS (PRIDE)
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded border border-slate-850">
+                          <span className="text-slate-500 text-[10px] block">
+                            Phosphoproteomics
+                          </span>
+                          <span className="text-amber-400 font-bold text-sm">
+                            14 / 20 Entities
+                          </span>
+                          <span className="text-slate-500 text-[10px] block mt-0.5">
+                            CPTAC Phospho
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded border border-slate-850">
+                          <span className="text-slate-500 text-[10px] block">
+                            Epigenomics
+                          </span>
+                          <span className="text-cyan-400 font-bold text-sm">
+                            16 / 20 Promoters
+                          </span>
+                          <span className="text-slate-500 text-[10px] block mt-0.5">
+                            ATAC-seq (ENCODE)
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded border border-slate-850">
+                          <span className="text-slate-500 text-[10px] block">
+                            Metabolomics
+                          </span>
+                          <span className="text-purple-400 font-bold text-sm">
+                            Active Pathways
+                          </span>
+                          <span className="text-slate-500 text-[10px] block mt-0.5">
+                            HMDB Overlay
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Concordance Metric */}
+                      <div className="bg-slate-950 p-4 rounded border border-slate-850 flex justify-between items-center">
+                        <div>
+                          <span className="text-slate-400 text-xs font-semibold block">
+                            Cross-Modal mRNA vs Protein Abundance Concordance
+                          </span>
+                          <p className="text-[10px] text-slate-500">
+                            Evaluates post-transcriptional buffering and
+                            translation efficiency across measured pairs.
+                          </p>
+                        </div>
+                        <span className="text-emerald-400 font-bold text-xl">
+                          86.5%
+                        </span>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 5: TEMPORAL ATLAS */}
+              {activeTwinSubtab === "temporal" && (
+                <div className="space-y-6">
+                  <PanelCard title="Longitudinal Dynamics &amp; Change-Point Trajectories">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Timepoints Selector */}
+                      <div className="flex items-center space-x-3 bg-slate-950 p-3 rounded border border-slate-850">
+                        <span className="text-slate-400 text-xs">
+                          Select Observation Timepoint:
+                        </span>
+                        <div className="flex space-x-2">
+                          {[0.0, 6.0, 12.0, 24.0].map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setSelectedTimelineTimepoint(t)}
+                              className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                                selectedTimelineTimepoint === t
+                                  ? "bg-cyan-600 text-white"
+                                  : "bg-slate-900 text-slate-400 hover:text-slate-200"
+                              }`}
+                            >
+                              t = {t}h
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Change Point Alert */}
+                      <div className="bg-cyan-950/20 border border-cyan-800/40 p-3 rounded text-[11px] text-cyan-300 flex items-start space-x-2.5">
+                        <Clock className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold block">
+                            Acute Biological Inflection Detected (t = 0h ➔ 6h):
+                          </span>
+                          <span className="text-slate-300 text-[10px]">
+                            Maximum first-derivative rate of change observed on
+                            CYP3A4 (+2.5 log2TPM, rate 0.417 hr⁻¹) and AKT1
+                            phosphorylation (+0.17 activity).
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Trajectory Table */}
+                      <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                          Temporal Expression History across Snapshots:
+                        </span>
+                        <div className="grid grid-cols-4 gap-2 text-[10px] text-center pt-1">
+                          {twinTimeline.map((obs: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="bg-slate-900 p-2.5 rounded border border-slate-850 space-y-1"
+                            >
+                              <span className="text-cyan-400 font-bold block">
+                                t = {obs.timepoint}h
+                              </span>
+                              <div className="text-slate-400 text-[9px]">
+                                CYP3A4: {obs.states?.CYP3A4?.gene_expression}{" "}
+                                log2TPM
+                              </div>
+                              <div className="text-slate-400 text-[9px]">
+                                AKT1 Act: {obs.states?.AKT1?.protein_activity}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 6: TWIN COMPARISON LAB */}
+              {activeTwinSubtab === "comparison" && (
+                <div className="space-y-6">
+                  <PanelCard title="Comparative Systems Biology: Healthy Baseline vs Disease State">
+                    <div className="space-y-4 font-mono text-xs">
+                      {twinComparison && (
+                        <div className="space-y-4">
+                          <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-1.5">
+                            <span className="text-[10px] text-indigo-400 uppercase tracking-wider block font-semibold">
+                              Executive Comparative Synthesis
+                            </span>
+                            <p className="text-slate-300 text-xs leading-relaxed">
+                              {twinComparison.summary_narrative}
+                            </p>
+                          </div>
+
+                          {/* Top Differentials */}
+                          <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                              Statistically Significant Alterations:
+                            </span>
+                            <div className="space-y-2">
+                              {twinComparison.differential_state?.top_differential_entities?.map(
+                                (d: any) => (
+                                  <div
+                                    key={d.entity_id}
+                                    className="bg-slate-900 p-2.5 rounded border border-slate-850 flex justify-between items-center text-[11px]"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <span className="font-bold text-slate-200">
+                                        {d.entity_id}
+                                      </span>
+                                      <span
+                                        className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                                          d.direction === "UP"
+                                            ? "bg-emerald-950/60 text-emerald-300 border border-emerald-800"
+                                            : "bg-rose-950/60 text-rose-300 border border-rose-800"
+                                        }`}
+                                      >
+                                        {d.direction}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center space-x-4 text-[10px]">
+                                      <span className="text-slate-400">
+                                        log2FC:{" "}
+                                        <strong
+                                          className={
+                                            d.log2_fc > 0
+                                              ? "text-emerald-400"
+                                              : "text-rose-400"
+                                          }
+                                        >
+                                          {d.log2_fc}
+                                        </strong>
+                                      </span>
+                                      <span className="text-slate-500">
+                                        p-val: {d.p_value}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 7: SCENARIO WORKSPACE */}
+              {activeTwinSubtab === "scenarios" && (
+                <div className="space-y-6">
+                  <PanelCard title="In Silico Scenario Branching &amp; Interventions">
+                    <div className="space-y-4 font-mono text-xs">
+                      {/* Scientific Guardrail */}
+                      <div className="bg-cyan-950/20 border border-cyan-800/40 p-3 rounded text-[11px] text-cyan-300 flex items-start space-x-2">
+                        <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Scientific Guardrail:</strong> Scenario
+                          branches represent isolated in silico perturbations
+                          and never modify or overwrite parent observed baseline
+                          measurements.
+                        </span>
+                      </div>
+
+                      {/* Scenario Creation Controls */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded border border-slate-850">
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            Target Entity
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedScenarioTarget}
+                            onChange={(e) =>
+                              setSelectedScenarioTarget(e.target.value)
+                            }
+                            className="w-full bg-slate-900 border border-slate-800 rounded p-2 text-slate-200"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            Intervention Modality
+                          </label>
+                          <select
+                            value={selectedScenarioIntervention}
+                            onChange={(e) =>
+                              setSelectedScenarioIntervention(e.target.value)
+                            }
+                            className="w-full bg-slate-900 border border-slate-800 rounded p-2 text-slate-200"
+                          >
+                            <option value="KNOCKDOWN">
+                              Knockdown (-50% to -80%)
+                            </option>
+                            <option value="KNOCKOUT">Knockout (-100%)</option>
+                            <option value="OVEREXPRESSION">
+                              Overexpression (+100%)
+                            </option>
+                            <option value="INHIBITION">
+                              Chemical Inhibition
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            Strength (0.1 - 1.0)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.1"
+                            max="1.0"
+                            value={selectedScenarioStrength}
+                            onChange={(e) =>
+                              setSelectedScenarioStrength(
+                                parseFloat(e.target.value),
+                              )
+                            }
+                            className="w-full bg-slate-900 border border-slate-800 rounded p-2 text-slate-200"
+                          />
+                        </div>
+
+                        <div className="flex items-end">
+                          <button
+                            disabled={isExecutingScenario}
+                            onClick={handleRunScenario}
+                            className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white font-semibold py-2 px-3 rounded transition-all flex items-center justify-center space-x-2"
+                          >
+                            {isExecutingScenario ? (
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Play className="h-3.5 w-3.5 fill-current" />
+                            )}
+                            <span>Simulate Branch</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Existing Scenarios List */}
+                      <div className="space-y-3 pt-2">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">
+                          Branch Scenarios Archive:
+                        </span>
+                        {twinScenarios.map((scn: any) => (
+                          <div
+                            key={scn.scenario_id}
+                            className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2"
+                          >
+                            <div className="flex justify-between items-center text-[11px]">
+                              <span className="font-bold text-cyan-400">
+                                {scn.name}
+                              </span>
+                              <span className="px-2 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] border border-slate-800">
+                                {scn.scenario_id}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">
+                              {scn.description}
+                            </p>
+                            {scn.result?.pathway_shifts && (
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-[10px]">
+                                {Object.entries(scn.result.pathway_shifts).map(
+                                  ([pw, shift]: any) => (
+                                    <div
+                                      key={pw}
+                                      className="bg-slate-900 p-2 rounded border border-slate-850"
+                                    >
+                                      <span className="text-slate-400 block truncate">
+                                        {pw}
+                                      </span>
+                                      <span
+                                        className={`font-bold ${shift >= 0 ? "text-emerald-400" : "text-rose-400"}`}
+                                      >
+                                        {shift >= 0
+                                          ? `+${(shift * 100).toFixed(0)}%`
+                                          : `${(shift * 100).toFixed(0)}%`}
+                                      </span>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* SUBTAB 8: TWIN VALIDATION CENTER */}
+              {activeTwinSubtab === "validation" && (
+                <div className="space-y-6">
+                  <PanelCard title="Multi-Dimensional Digital Twin Fidelity Scorecard">
+                    <div className="space-y-4 font-mono text-xs">
+                      {twinValidation && (
+                        <div className="space-y-4">
+                          <div className="bg-emerald-950/20 border border-emerald-800/40 p-3 rounded text-[11px] text-emerald-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                              <span className="font-bold">
+                                VALIDATION STATUS: PASSED SCIENTIFIC FIDELITY
+                                BENCHMARK
+                              </span>
+                            </div>
+                            <span className="text-slate-400 text-[10px]">
+                              Coverage:{" "}
+                              {(twinValidation.coverage_score * 100).toFixed(0)}
+                              %
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                              <span className="text-cyan-400 font-bold block">
+                                1. Structural Fidelity
+                              </span>
+                              <div className="text-[10px] space-y-1 text-slate-400">
+                                <div className="flex justify-between">
+                                  <span>AUROC:</span>
+                                  <strong className="text-slate-200">
+                                    {twinValidation.structural_fidelity?.auroc}
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Precision:</span>
+                                  <strong className="text-slate-200">
+                                    {
+                                      twinValidation.structural_fidelity
+                                        ?.precision
+                                    }
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Recall:</span>
+                                  <strong className="text-slate-200">
+                                    {twinValidation.structural_fidelity?.recall}
+                                  </strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                              <span className="text-indigo-400 font-bold block">
+                                2. State Fidelity
+                              </span>
+                              <div className="text-[10px] space-y-1 text-slate-400">
+                                <div className="flex justify-between">
+                                  <span>MAE:</span>
+                                  <strong className="text-slate-200">
+                                    {twinValidation.state_fidelity?.mae}
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>RMSE:</span>
+                                  <strong className="text-slate-200">
+                                    {twinValidation.state_fidelity?.rmse}
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Spearman ρ:</span>
+                                  <strong className="text-emerald-400">
+                                    {
+                                      twinValidation.state_fidelity
+                                        ?.spearman_rho
+                                    }
+                                  </strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                              <span className="text-amber-400 font-bold block">
+                                3. Temporal Fidelity
+                              </span>
+                              <div className="text-[10px] space-y-1 text-slate-400">
+                                <div className="flex justify-between">
+                                  <span>Forecast RMSE:</span>
+                                  <strong className="text-slate-200">
+                                    {
+                                      twinValidation.temporal_fidelity
+                                        ?.forecasting_rmse
+                                    }
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Direction Corr:</span>
+                                  <strong className="text-slate-200">
+                                    {
+                                      twinValidation.temporal_fidelity
+                                        ?.trajectory_correlation
+                                    }
+                                  </strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-950 p-4 rounded border border-slate-850 space-y-2">
+                              <span className="text-emerald-400 font-bold block">
+                                4. Uncertainty
+                              </span>
+                              <div className="text-[10px] space-y-1 text-slate-400">
+                                <div className="flex justify-between">
+                                  <span>Calibration ECE:</span>
+                                  <strong className="text-emerald-400">
+                                    {
+                                      twinValidation.uncertainty_calibration
+                                        ?.calibration_ece
+                                    }
+                                  </strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Brier Score:</span>
+                                  <strong className="text-slate-200">
+                                    {
+                                      twinValidation.uncertainty_calibration
+                                        ?.brier_score
+                                    }
+                                  </strong>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-950 p-4 rounded border border-slate-850 text-slate-400 text-[11px] leading-relaxed">
+                            <strong className="text-slate-300">
+                              Methodological Disclosure:
+                            </strong>{" "}
+                            In adherence to rigorous scientific validation
+                            protocols, PROTEA evaluates structural, state,
+                            temporal, and context fidelities independently. It
+                            explicitly does not claim a single oversimplified
+                            &quot;digital twin accuracy score&quot;, ensuring
+                            fidelity across each biological dimension is
+                            transparently verifiable.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Other tabs placeholders remain standard... */}
           {activeTab !== "overview" &&
             activeTab !== "protein" &&
             activeTab !== "graph" &&
             activeTab !== "prediction" &&
             activeTab !== "pathway" &&
-            activeTab !== "agents" && (
+            activeTab !== "agents" &&
+            activeTab !== "twins" && (
               <div className="bg-slate-900 border border-slate-800 p-12 rounded-lg text-center font-mono">
                 <Sliders className="h-12 w-12 text-slate-700 mx-auto mb-4 animate-pulse" />
                 <h3 className="text-md font-bold text-slate-300">

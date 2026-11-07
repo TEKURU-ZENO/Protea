@@ -1,0 +1,120 @@
+# PROTEA - Phase 7: Digital Interactome Twin (DIT) Configuration
+version: "1.0.0"
+
+digital_twin:
+  default_organism: "NCBI:9606"  # Homo sapiens
+  default_context:
+    tissue: "liver"
+    cell_type: "hepatocyte"
+    condition: "healthy"
+  
+  initialization:
+    supported_modes:
+      - "observed"
+      - "knowledge_based"
+      - "hybrid"
+    include_experimental: true
+    include_computational: true
+    separate_predicted_edges: true
+    default_evidence_threshold: 0.60
+
+  layers:
+    - name: "protein_interactions"
+      description: "Physical binding and PPI topology"
+      directed: false
+    - name: "gene_regulation"
+      description: "Transcription factor to target gene regulation"
+      directed: true
+    - name: "pathways"
+      description: "Reactions, cascades, and functional modules"
+      directed: true
+    - name: "expression"
+      description: "Transcript and protein abundance state overlays"
+      directed: false
+    - name: "localization"
+      description: "Subcellular compartment co-occurrence constraints"
+      directed: false
+    - name: "temporal_state"
+      description: "Time-series trajectories and dynamic snapshots"
+      directed: false
+
+  state_representation:
+    dimensions:
+      - "gene_expression"       # log2(TPM + 1)
+      - "protein_abundance"     # log2(LFQ/iBAQ intensity)
+      - "protein_activity"      # inferred activity score [-1.0, 1.0]
+      - "phosphorylation"       # phosphosite occupancy [0.0, 1.0]
+      - "subcellular_location"  # nucleus, cytosol, membrane, mitochondria
+      - "pathway_activity"      # single-sample activity score [-2.0, 2.0]
+      - "interaction_status"    # active, repressed, rewired
+      - "cell_condition"        # healthy, stressed, oncogenic
+    
+    status_types:
+      - "OBSERVED"
+      - "ESTIMATED"
+      - "PREDICTED"
+      - "SIMULATED"
+    
+    missing_data_policy: "retain_missing_with_imputation_flag"
+
+  state_estimation:
+    algorithm: "knn_matrix_completion"
+    k_neighbors: 5
+    regularization: 0.01
+    max_missing_ratio: 0.70
+
+  temporal:
+    sampling: "irregular_supported"
+    interpolation: "piecewise_linear"
+    change_point_threshold: 0.35
+    snapshot_interval_hours: 6.0
+
+  multiomics:
+    modalities:
+      - "transcriptomics"
+      - "proteomics"
+      - "phosphoproteomics"
+      - "epigenomics"
+      - "metabolomics"
+    normalization:
+      transcriptomics: "log2_tpm"
+      proteomics: "median_polish_zscore"
+      phosphoproteomics: "site_ratio_log2"
+      epigenomics: "peak_accessibility_zscore"
+      metabolomics: "quantile_normalized"
+
+  data_assimilation:
+    default_method: "bayesian_filter"
+    kalman_process_noise: 0.05
+    kalman_measurement_noise: 0.15
+    particle_filter_particles: 500
+
+  comparison:
+    log2fc_threshold: 1.0
+    p_value_threshold: 0.05
+    top_rewired_edges: 25
+
+  scenarios:
+    supported_interventions:
+      - "knockout"
+      - "knockdown"
+      - "overexpression"
+      - "inhibition"
+      - "activation"
+      - "drug_treatment"
+      - "mutation"
+    propagation:
+      decay_factor: 0.80
+      max_propagation_depth: 4
+      isolate_branch: true  # Scenario never overwrites parent observed baseline
+
+  validation:
+    metrics:
+      structural: ["precision", "recall", "f1", "auroc", "auprc"]
+      state: ["mae", "rmse", "spearman_rho"]
+      temporal: ["forecasting_rmse", "trajectory_correlation"]
+      uncertainty: ["ece", "brier_score"]
+    thresholds:
+      min_auroc: 0.75
+      max_mae: 0.25
+      min_spearman: 0.65
