@@ -1,0 +1,103 @@
+# PROTEA - Biological Reasoning Engine (BRE) Configuration
+# Production & Research-grade Hyperparameters
+
+biological_reasoning:
+  version: "1.0.0"
+  description: "Unified evidence-grounded biological reasoning, mechanism reconstruction, hypothesis ranking, and counterfactual simulation"
+
+  # 1. Source Reliability & Evidence Hierarchy
+  evidence_hierarchy:
+    weights:
+      experimental_structures: 1.00     # X-ray, Cryo-EM, NMR
+      direct_binding_assays: 0.90      # Surface Plasmon Resonance, ITC
+      affinity_purification_ms: 0.85   # AP-MS, Co-IP
+      two_hybrid_screens: 0.75         # Y2H
+      curated_pathway_db: 0.85         # Reactome, KEGG curated reactions
+      differential_expression: 0.70    # RNA-seq, Microarray
+      text_mining_nlp: 0.55            # Automated literature mining
+      computational_gnn: 0.50          # GNN link prediction (IPE)
+      sequence_plm: 0.45               # Protein Language Model cosine similarity
+    deduplication:
+      enabled: true
+      collapse_shared_pubmed_ids: true
+
+  # 2. Confidence & Calibration Dimensions
+  confidence_dimensions:
+    evidence_strength:
+      min_threshold: 0.30
+      saturation_count: 5               # Number of independent experiments for maximum strength
+    model_confidence:
+      temperature_scaling: true
+    biological_certainty:
+      levels: ["ESTABLISHED", "PROBABLE", "HYPOTHETICAL", "CONTRADICTED"]
+
+  # 3. Question Understanding & Parsing
+  query:
+    supported_tasks:
+      - "upstream_regulator_analysis"
+      - "downstream_pathway_impact"
+      - "mechanism_reconstruction"
+      - "counterfactual_perturbation"
+      - "competing_hypotheses"
+      - "evidence_audit"
+    default_organism: "Homo sapiens"
+    preserve_ambiguity: true
+
+  # 4. Mechanistic & Graph Reasoning
+  mechanistic:
+    max_hops: 4
+    min_path_confidence: 0.40
+    regulatory_signs:
+      activates: 1
+      phosphorylates: 1
+      upregulates: 1
+      cleaves: 1
+      inhibits: -1
+      dephosphorylates: -1
+      downregulates: -1
+      ubiquitinates: -1
+      complex_formation: 1
+      binds: 0                          # Ambiguous sign
+    distinguish_interaction_types: true # Physical binding vs regulatory effect vs causal influence
+
+  # 5. Hypothesis Generation & Ranking
+  hypothesis:
+    max_competing_hypotheses: 5
+    penalize_contradictions: true
+    contradiction_penalty_weight: 0.40
+    novelty_bonus_weight: 0.15
+
+  # 6. Counterfactual & Perturbation
+  counterfactual:
+    default_propagation_depth: 3
+    signal_decay_rate: 0.25
+    convergence_tolerance: 1e-5
+    intervention_types:
+      - "knockout"
+      - "knockdown"
+      - "overexpression"
+      - "inhibition"
+      - "activation"
+
+  # 7. Biological Constraints & Validation
+  validation:
+    strict_compartment_check: true
+    allow_translocation_exceptions: true
+    enforce_organism_match: true
+    flag_unsupported_assumptions: true
+
+  # 8. Controlled Multi-Agent Orchestrator
+  multi_agent:
+    max_rounds: 6
+    agent_roles:
+      - "orchestrator"
+      - "retrieval_agent"
+      - "mechanism_agent"
+      - "hypothesis_agent"
+      - "validation_agent"
+      - "critic_agent"
+      - "report_agent"
+    critic:
+      strictness: 0.80
+      challenge_unsupported_claims: true
+      override_experimental_evidence: false # Invariant: Critic cannot override empirical data
