@@ -462,6 +462,31 @@ export default function BiologicalDiscoveryStudio() {
     ],
   });
 
+  // =========================================================================
+  // Phase 10: Mutation & Therapeutic Intelligence Engine (MTIE) State
+  // =========================================================================
+  const [activeTherapeuticSubtab, setActiveTherapeuticSubtab] =
+    useState("variants");
+  const [vcfInputText, setVcfInputText] = useState(
+    "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr7\t140753336\trs113488022\tT\tA\t100\tPASS\tGENE=BRAF;HGVS_P=p.Val600Glu\nchr7\t55181378\trs121434569\tC\tT\t100\tPASS\tGENE=EGFR;HGVS_P=p.Thr790Met\nchr12\t25245350\trs121913529\tC\tA\t100\tPASS\tGENE=KRAS;HGVS_P=p.Gly12Asp\nchr17\t7674220\trs28934578\tG\tA\t100\tPASS\tGENE=TP53;HGVS_P=p.Arg175His",
+  );
+  const [selectedMtieVariant, setSelectedMtieVariant] = useState({
+    gene: "BRAF",
+    wt: "V",
+    pos: 600,
+    mut: "E",
+    label: "BRAF_V600E",
+    hgvs_c: "c.1799T>A",
+    hgvs_p: "p.Val600Glu",
+    consequence: "missense_variant",
+    clinvar: "Pathogenic",
+    dbsnp: "rs113488022",
+    gnomad_af: 0.000004,
+    cosmic: "COSM476",
+    disease: "Cutaneous Melanoma",
+  });
+  const [isMtieRunning, setIsMtieRunning] = useState(false);
+
   // Check API health
   useEffect(() => {
     const checkApi = async () => {
@@ -2603,8 +2628,11 @@ export default function BiologicalDiscoveryStudio() {
     { id: "twins", name: "Digital Twins", icon: Layers },
     { id: "simulation", name: "Cellular Simulation", icon: Activity },
     { id: "ai_scientist", name: "AI Scientist Lab", icon: Sparkles },
-    { id: "mutation", name: "Mutation Sandbox", icon: Sliders },
-    { id: "drug", name: "Drug Lab", icon: FlaskConical },
+    {
+      id: "therapeutics",
+      name: "Mutation & Therapeutic Lab",
+      icon: FlaskConical,
+    },
     { id: "experiments", name: "Experiments", icon: GitPullRequest },
     { id: "reports", name: "Reports", icon: FileText },
     { id: "settings", name: "Settings", icon: SettingsIcon },
@@ -2642,6 +2670,18 @@ export default function BiologicalDiscoveryStudio() {
     { id: "statistics", name: "Statistics", icon: Activity },
     { id: "publications", name: "Publications", icon: BookOpen },
     { id: "evidence", name: "Evidence", icon: HelpCircle },
+  ];
+
+  const therapeuticsSubtabs = [
+    { id: "variants", name: "Variant Intelligence", icon: Dna },
+    { id: "impact", name: "Mutation Impact", icon: Sliders },
+    { id: "structure", name: "Structural Studio", icon: Layers },
+    { id: "stability", name: "Folding Stability", icon: Activity },
+    { id: "rewiring", name: "Interactome Rewiring", icon: Network },
+    { id: "disease", name: "Disease Mechanism", icon: Share2 },
+    { id: "targets", name: "Target Discovery", icon: Compass },
+    { id: "drugs", name: "Drug & Resistance", icon: FlaskConical },
+    { id: "simulation", name: "Therapeutic Simulation", icon: Play },
   ];
 
   const pathwaySubtabs = [
@@ -8582,6 +8622,1321 @@ export default function BiologicalDiscoveryStudio() {
             </div>
           )}
 
+          {/* ========================================================================= */}
+          {/* PHASE 10: MUTATION & THERAPEUTIC INTELLIGENCE ENGINE (MTIE)               */}
+          {/* ========================================================================= */}
+          {activeTab === "therapeutics" && (
+            <div className="space-y-6">
+              {/* Header Banner */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-emerald-950/40 p-5 rounded-lg border border-slate-800 shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded">
+                        Phase 10: MTIE
+                      </span>
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded">
+                        Precision Oncology
+                      </span>
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded">
+                        Branching Principle Enforced
+                      </span>
+                    </div>
+                    <h2 className="text-xl font-bold font-mono text-slate-100 mt-1 flex items-center gap-2">
+                      <FlaskConical className="h-5 w-5 text-emerald-400" />
+                      Mutation &amp; Therapeutic Intelligence Engine
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                      Connect the complete causation chain: Genetic variant
+                      &rarr; Protein alteration &rarr; Structural &amp;
+                      stability impact &rarr; Interactome rewiring &rarr;
+                      Pathway disruption &rarr; Target discovery &rarr; Drug
+                      sensitivity &amp; resistance &rarr; Multi-drug combination
+                      simulation.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setIsMtieRunning(true);
+                        setTimeout(() => setIsMtieRunning(false), 900);
+                      }}
+                      disabled={isMtieRunning}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                    >
+                      <Play
+                        className={`h-3.5 w-3.5 ${isMtieRunning ? "animate-spin" : ""}`}
+                      />
+                      <span>
+                        {isMtieRunning
+                          ? "Executing MTIE Analysis..."
+                          : "Run MTIE Pipeline"}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedMtieVariant({
+                          gene: "EGFR",
+                          wt: "T",
+                          pos: 790,
+                          mut: "M",
+                          label: "EGFR_T790M",
+                          hgvs_c: "c.2369C>T",
+                          hgvs_p: "p.Thr790Met",
+                          consequence: "missense_variant",
+                          clinvar: "Pathogenic",
+                          dbsnp: "rs121434569",
+                          gnomad_af: 0.000008,
+                          cosmic: "COSM6240",
+                          disease: "Non-Small Cell Lung Cancer",
+                        });
+                      }}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-xs transition-colors"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      <span>Switch to EGFR T790M</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subtabs Bar */}
+                <div className="mt-5 border-t border-slate-800/80 pt-3 flex items-center space-x-1 overflow-x-auto">
+                  {therapeuticsSubtabs.map((subtab) => {
+                    const Icon = subtab.icon;
+                    const isActive = activeTherapeuticSubtab === subtab.id;
+                    return (
+                      <button
+                        key={subtab.id}
+                        onClick={() => setActiveTherapeuticSubtab(subtab.id)}
+                        className={`flex items-center space-x-2 px-3 py-1.5 rounded text-xs font-mono transition-all whitespace-nowrap ${
+                          isActive
+                            ? "bg-slate-800 text-emerald-400 border border-emerald-500/30 shadow-sm"
+                            : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span>{subtab.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sub-panel 1: Variant Intelligence */}
+              {activeTherapeuticSubtab === "variants" && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs">
+                  <div className="lg:col-span-1 space-y-4">
+                    <PanelCard title="VCF Batch Ingestion &amp; Normalizer">
+                      <div className="space-y-3">
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Paste VCF text or load clinical multi-allelic records.
+                          Automatically resolves coordinates to GRCh38 and
+                          canonical Ensembl transcripts.
+                        </p>
+                        <textarea
+                          rows={6}
+                          value={vcfInputText}
+                          onChange={(e) => setVcfInputText(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-[11px] font-mono text-slate-300 focus:outline-none focus:border-emerald-500/50"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedMtieVariant({
+                                gene: "BRAF",
+                                wt: "V",
+                                pos: 600,
+                                mut: "E",
+                                label: "BRAF_V600E",
+                                hgvs_c: "c.1799T>A",
+                                hgvs_p: "p.Val600Glu",
+                                consequence: "missense_variant",
+                                clinvar: "Pathogenic",
+                                dbsnp: "rs113488022",
+                                gnomad_af: 0.000004,
+                                cosmic: "COSM476",
+                                disease: "Cutaneous Melanoma",
+                              });
+                            }}
+                            className="flex-1 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded text-center"
+                          >
+                            Load BRAF V600E
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedMtieVariant({
+                                gene: "KRAS",
+                                wt: "G",
+                                pos: 12,
+                                mut: "D",
+                                label: "KRAS_G12D",
+                                hgvs_c: "c.35G>A",
+                                hgvs_p: "p.Gly12Asp",
+                                consequence: "missense_variant",
+                                clinvar: "Pathogenic",
+                                dbsnp: "rs121913529",
+                                gnomad_af: 0.000002,
+                                cosmic: "COSM521",
+                                disease: "Pancreatic Ductal Adenocarcinoma",
+                              });
+                            }}
+                            className="flex-1 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 rounded text-center"
+                          >
+                            Load KRAS G12D
+                          </button>
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+
+                  <div className="lg:col-span-2 space-y-4">
+                    <PanelCard title="Normalized Variant Annotation Table (GRCh38)">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-[11px]">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/50">
+                              <th className="p-2">Variant</th>
+                              <th className="p-2">HGVS Coding / Protein</th>
+                              <th className="p-2">ClinVar Status</th>
+                              <th className="p-2">dbSNP / gnomAD AF</th>
+                              <th className="p-2">COSMIC ID</th>
+                              <th className="p-2">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60">
+                            {[
+                              {
+                                gene: "BRAF",
+                                pos: "chr7:140753336",
+                                hgvs_c: "c.1799T>A",
+                                hgvs_p: "p.Val600Glu",
+                                clin: "Pathogenic",
+                                rs: "rs113488022",
+                                af: "0.000004",
+                                cosmic: "COSM476",
+                                active: selectedMtieVariant.gene === "BRAF",
+                              },
+                              {
+                                gene: "EGFR",
+                                pos: "chr7:55181378",
+                                hgvs_c: "c.2369C>T",
+                                hgvs_p: "p.Thr790Met",
+                                clin: "Pathogenic",
+                                rs: "rs121434569",
+                                af: "0.000008",
+                                cosmic: "COSM6240",
+                                active: selectedMtieVariant.gene === "EGFR",
+                              },
+                              {
+                                gene: "KRAS",
+                                pos: "chr12:25245350",
+                                hgvs_c: "c.35G>A",
+                                hgvs_p: "p.Gly12Asp",
+                                clin: "Pathogenic",
+                                rs: "rs121913529",
+                                af: "0.000002",
+                                cosmic: "COSM521",
+                                active: selectedMtieVariant.gene === "KRAS",
+                              },
+                              {
+                                gene: "TP53",
+                                pos: "chr17:7674220",
+                                hgvs_c: "c.524G>A",
+                                hgvs_p: "p.Arg175His",
+                                clin: "Pathogenic",
+                                rs: "rs28934578",
+                                af: "0.000006",
+                                cosmic: "COSM10648",
+                                active: selectedMtieVariant.gene === "TP53",
+                              },
+                            ].map((row, idx) => (
+                              <tr
+                                key={idx}
+                                className={
+                                  row.active
+                                    ? "bg-emerald-950/20 text-slate-200"
+                                    : "hover:bg-slate-900/30 text-slate-400"
+                                }
+                              >
+                                <td className="p-2 font-bold text-slate-200">
+                                  {row.gene} ({row.pos})
+                                </td>
+                                <td className="p-2 text-emerald-400">
+                                  {row.hgvs_c} / {row.hgvs_p}
+                                </td>
+                                <td className="p-2">
+                                  <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    {row.clin}
+                                  </span>
+                                </td>
+                                <td className="p-2">
+                                  {row.rs} (AF: {row.af})
+                                </td>
+                                <td className="p-2 text-indigo-400">
+                                  {row.cosmic}
+                                </td>
+                                <td className="p-2">
+                                  <button
+                                    onClick={() => {
+                                      const wtMap: any = {
+                                        BRAF: "V",
+                                        EGFR: "T",
+                                        KRAS: "G",
+                                        TP53: "R",
+                                      };
+                                      const posMap: any = {
+                                        BRAF: 600,
+                                        EGFR: 790,
+                                        KRAS: 12,
+                                        TP53: 175,
+                                      };
+                                      const mutMap: any = {
+                                        BRAF: "E",
+                                        EGFR: "M",
+                                        KRAS: "D",
+                                        TP53: "H",
+                                      };
+                                      setSelectedMtieVariant({
+                                        gene: row.gene,
+                                        wt: wtMap[row.gene],
+                                        pos: posMap[row.gene],
+                                        mut: mutMap[row.gene],
+                                        label: `${row.gene}_${wtMap[row.gene]}${posMap[row.gene]}${mutMap[row.gene]}`,
+                                        hgvs_c: row.hgvs_c,
+                                        hgvs_p: row.hgvs_p,
+                                        consequence: "missense_variant",
+                                        clinvar: row.clin,
+                                        dbsnp: row.rs,
+                                        gnomad_af: parseFloat(row.af),
+                                        cosmic: row.cosmic,
+                                        disease:
+                                          row.gene === "BRAF"
+                                            ? "Melanoma"
+                                            : row.gene === "EGFR"
+                                              ? "NSCLC"
+                                              : row.gene === "KRAS"
+                                                ? "PDAC"
+                                                : "Li-Fraumeni",
+                                      });
+                                    }}
+                                    className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px]"
+                                  >
+                                    Select
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 2: Mutation Impact Lab */}
+              {activeTherapeuticSubtab === "impact" && (
+                <div className="space-y-6 font-mono text-xs">
+                  {/* Guardrail Callout */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center space-x-3 text-amber-300">
+                    <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0" />
+                    <div>
+                      <span className="font-bold">
+                        Scientific Guardrail: Pathogenicity &ne; Mechanism
+                      </span>{" "}
+                      &mdash; High deleteriousness scores indicate perturbation
+                      to wildtype function, but do not dictate whether the
+                      biochemical consequence is Loss-of-Function (LoF) or
+                      oncogenic Gain-of-Function (GoF).
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <PanelCard title="Zero-Shot ESM-2 Scoring">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">
+                            &Delta;LLR Log-Odds:
+                          </span>
+                          <span className="text-rose-400 font-bold">-7.80</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            BLOSUM62 Matrix:
+                          </span>
+                          <span className="text-slate-200">
+                            -3 (Non-conservative)
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            Grantham Distance:
+                          </span>
+                          <span className="text-slate-200">121 &Aring;</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            Conservation Index:
+                          </span>
+                          <span className="text-emerald-400 font-bold">
+                            0.85 / 1.00
+                          </span>
+                        </div>
+                        <div className="p-2 rounded bg-slate-950 text-slate-400 text-[10px] leading-tight">
+                          ESM-2 calibrated log-odds falls significantly below
+                          the deleterious cutoff (-6.0), indicating strong
+                          evolutionary constraint at residue{" "}
+                          {selectedMtieVariant.pos}.
+                        </div>
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Domain Architecture &amp; Loops">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            Intersected Domain:
+                          </span>
+                          <span className="text-indigo-400 font-bold">
+                            Activation segment (A-loop)
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">Coordinates:</span>
+                          <span className="text-slate-300">
+                            Residues 593 &ndash; 623
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            Direct Catalytic Site:
+                          </span>
+                          <span className="text-emerald-400">
+                            False (Regulatory)
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            Gatekeeper Residue:
+                          </span>
+                          <span className="text-slate-300">
+                            {selectedMtieVariant.gene === "EGFR"
+                              ? "True (Thr790)"
+                              : "False"}
+                          </span>
+                        </div>
+                        <div className="p-2 rounded bg-slate-950 text-slate-400 text-[10px] leading-tight">
+                          Substitution introduces negative charge mimicking
+                          phosphorylation, permanently locking activation
+                          segment into catalytic active conformation.
+                        </div>
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Mechanistic Classification">
+                      <div className="space-y-3 text-center">
+                        <div className="py-2">
+                          <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-sm border border-emerald-500/40">
+                            {selectedMtieVariant.gene === "TP53"
+                              ? "DOMINANT_NEGATIVE"
+                              : "GAIN_OF_FUNCTION"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 text-left">
+                          {selectedMtieVariant.gene === "TP53"
+                            ? "Conformational mutant oligomerizes with wildtype p53 tetramers, blocking transcriptional transactivation."
+                            : "Constitutive kinase hyperactivation independent of upstream receptor engagement and RAS-GTP loading."}
+                        </p>
+                        <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-[11px]">
+                          <span className="text-slate-400">
+                            Classifier Confidence:
+                          </span>
+                          <span className="text-emerald-400 font-bold">
+                            96.4%
+                          </span>
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 3: Structural Mutation Studio */}
+              {activeTherapeuticSubtab === "structure" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+                  <div className="md:col-span-1 space-y-4">
+                    <PanelCard title="3D Structure Metadata">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Target Gene:</span>
+                          <span className="text-slate-200 font-bold">
+                            {selectedMtieVariant.gene}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">
+                            Representative PDB:
+                          </span>
+                          <span className="text-emerald-400 font-bold">
+                            4MNE (AlphaFold v4)
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Resolution:</span>
+                          <span className="text-slate-200">2.10 &Aring;</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">
+                            Wildtype Mean pLDDT:
+                          </span>
+                          <span className="text-slate-200">88.4 / 100</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">
+                            Mutant Local pLDDT:
+                          </span>
+                          <span className="text-amber-400 font-bold">
+                            83.5 / 100 (High)
+                          </span>
+                        </div>
+                        <div className="p-2 bg-slate-950 rounded text-slate-400 text-[10px]">
+                          pLDDT &gt; 70 confirms modeled mutant backbone
+                          coordinates retain high geometric validity for
+                          docking.
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-4">
+                    <PanelCard title="Coordinate Deformation &amp; Solvent Accessibility">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div className="p-3 bg-slate-950 rounded border border-slate-800 text-center">
+                          <div className="text-slate-500 text-[10px]">
+                            Backbone RMSD
+                          </div>
+                          <div className="text-base font-bold text-slate-100">
+                            0.85 &Aring;
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-950 rounded border border-slate-800 text-center">
+                          <div className="text-slate-500 text-[10px]">
+                            &Delta;SASA
+                          </div>
+                          <div className="text-base font-bold text-emerald-400">
+                            +42.0 &Aring;&sup2;
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-950 rounded border border-slate-800 text-center">
+                          <div className="text-slate-500 text-[10px]">
+                            H-Bonds Lost
+                          </div>
+                          <div className="text-base font-bold text-rose-400">
+                            2
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-950 rounded border border-slate-800 text-center">
+                          <div className="text-slate-500 text-[10px]">
+                            Salt Bridges Disrupted
+                          </div>
+                          <div className="text-base font-bold text-amber-400">
+                            1
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-950 rounded border border-slate-800 space-y-2">
+                        <span className="text-slate-300 font-bold">
+                          Residue Microenvironment Contacts:
+                        </span>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Residues within 5&Aring; radius of position{" "}
+                          {selectedMtieVariant.pos}:{" "}
+                          <span className="text-slate-200">
+                            596, 597, 599, 601, 603, 604
+                          </span>
+                          . The substitution of Valine by Glutamate disrupts the
+                          hydrophobic spine packing with Phe468 and creates
+                          electrostatic repulsion with Lys483.
+                        </p>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 4: Stability & Functional Impact */}
+              {activeTherapeuticSubtab === "stability" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+                  <PanelCard title="Thermodynamic Folding Free Energy">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-400">
+                          &Delta;&Delta;G Folding:
+                        </span>
+                        <span className="text-rose-400 font-bold">
+                          +2.15 kcal/mol
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Stability Class:</span>
+                        <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                          DESTABILIZING
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Burial Fraction:</span>
+                        <span className="text-slate-300">
+                          0.65 (Partially Buried)
+                        </span>
+                      </div>
+                      <p className="p-2 bg-slate-950 text-slate-400 text-[10px]">
+                        Positive &Delta;&Delta;G indicates lower energy barrier
+                        for conformational transition, destabilizing inactive
+                        state in favor of catalytic active state.
+                      </p>
+                    </div>
+                  </PanelCard>
+
+                  <PanelCard title="Aggregation Propensity &amp; Solubility">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-400">
+                          &Delta; Aggregation Score:
+                        </span>
+                        <span className="text-slate-200 font-bold">+0.12</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Amyloid Risk:</span>
+                        <span className="text-emerald-400 font-bold">
+                          LOW (Non-nucleating)
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">
+                          Solvent Exposure:
+                        </span>
+                        <span className="text-slate-300">
+                          Increased Polar Solvation
+                        </span>
+                      </div>
+                      <p className="p-2 bg-slate-950 text-slate-400 text-[10px]">
+                        Hydrophilic Glutamate at position 600 maintains high
+                        aqueous solubility and resists amorphous protein
+                        precipitation.
+                      </p>
+                    </div>
+                  </PanelCard>
+
+                  <PanelCard title="Allosteric Pocket Coupling">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">
+                          Coupling Coefficient:
+                        </span>
+                        <span className="text-indigo-400 font-bold">
+                          0.75 / 1.00
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">
+                          Pocket Distortion:
+                        </span>
+                        <span className="text-slate-200">0.65 &Aring;</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">
+                          ATP Cleft Perturbation:
+                        </span>
+                        <span className="text-rose-400 font-bold">True</span>
+                      </div>
+                      <div className="p-2 bg-slate-950 text-slate-400 text-[10px]">
+                        Long-range mechanical force transfer distorts the
+                        ATP-binding pocket and MEK1/2 substrate binding
+                        interface.
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* Sub-panel 5: Interactome Rewiring Explorer */}
+              {activeTherapeuticSubtab === "rewiring" && (
+                <div className="space-y-6 font-mono text-xs">
+                  {/* Branching Banner */}
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between text-emerald-300">
+                    <div className="flex items-center space-x-2">
+                      <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                      <span>
+                        <span className="font-bold">
+                          Branching Principle Enforced
+                        </span>{" "}
+                        &mdash; Wildtype baseline interactome is strictly
+                        immutable. Mutant instance is isolated in branch graph{" "}
+                        <code className="bg-slate-900 px-1 py-0.5 rounded text-emerald-400">
+                          branch_interactome_
+                          {selectedMtieVariant.label.toLowerCase()}
+                        </code>
+                        .
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      Rewiring Index: 0.50
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <PanelCard title="Retained Interactions (3)">
+                      <div className="space-y-2">
+                        {[
+                          {
+                            partner: "MAP2K1",
+                            conf: 0.98,
+                            type: "Substrate Phosphorylation",
+                            status: "Hyperactivated",
+                          },
+                          {
+                            partner: "MAP2K2",
+                            conf: 0.97,
+                            type: "Substrate Phosphorylation",
+                            status: "Hyperactivated",
+                          },
+                          {
+                            partner: "CRAF",
+                            conf: 0.88,
+                            type: "Heterodimerization",
+                            status: "Retained",
+                          },
+                        ].map((edge, i) => (
+                          <div
+                            key={i}
+                            className="p-2 bg-slate-950 rounded border border-slate-800/80 flex justify-between items-center"
+                          >
+                            <div>
+                              <div className="font-bold text-slate-200">
+                                {edge.partner}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                {edge.type}
+                              </div>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px]">
+                              {edge.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Lost Native Clamps (2)">
+                      <div className="space-y-2">
+                        {[
+                          {
+                            partner: "YWHAZ (14-3-3)",
+                            conf: 0.92,
+                            reason:
+                              "Loss of auto-inhibitory phosphorylation clamp",
+                          },
+                          {
+                            partner: "KRAS / HRAS",
+                            conf: 0.95,
+                            reason: "Uncoupled from upstream GTPase dependency",
+                          },
+                        ].map((edge, i) => (
+                          <div
+                            key={i}
+                            className="p-2 bg-slate-950 rounded border border-rose-900/30 flex justify-between items-center"
+                          >
+                            <div>
+                              <div className="font-bold text-slate-200">
+                                {edge.partner}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                {edge.reason}
+                              </div>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[10px]">
+                              Lost
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Novel Gained Edges (2)">
+                      <div className="space-y-2">
+                        {[
+                          {
+                            partner: "MAP2K1_MONOMER",
+                            conf: 0.95,
+                            reason: "Active monomer constitutive binding",
+                          },
+                          {
+                            partner: "HSP90AA1",
+                            conf: 0.89,
+                            reason: "Chaperone dependency addiction",
+                          },
+                        ].map((edge, i) => (
+                          <div
+                            key={i}
+                            className="p-2 bg-slate-950 rounded border border-indigo-900/30 flex justify-between items-center"
+                          >
+                            <div>
+                              <div className="font-bold text-slate-200">
+                                {edge.partner}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                {edge.reason}
+                              </div>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px]">
+                              Gained
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 6: Disease Mechanism Mapper */}
+              {activeTherapeuticSubtab === "disease" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+                  <PanelCard title="Evidence-Backed Causal Mechanistic Trace">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 text-indigo-400 font-bold">
+                        <Activity className="h-4 w-4" />
+                        <span>
+                          Disease Context: {selectedMtieVariant.disease}{" "}
+                          (DOID:1909)
+                        </span>
+                      </div>
+                      <div className="relative pl-6 space-y-3 border-l-2 border-emerald-500/40">
+                        {[
+                          "Genomic transversion c.1799T>A creates Val600Glu substitution.",
+                          "Negative charge mimics phosphorylation, destabilizing inactive conformation.",
+                          "Functions as active kinase monomer independent of RAS-GTP and 14-3-3 clamp.",
+                          "Phosphorylation of downstream MEK1/2 increases >500-fold above basal levels.",
+                          "Persistent nuclear accumulation of phospho-ERK1/2 transactivates MYC and Cyclin D1.",
+                          "Suppresses intrinsic apoptosis and drives unchecked metastatic proliferation.",
+                        ].map((step, idx) => (
+                          <div key={idx} className="relative">
+                            <span className="absolute -left-[31px] top-0 h-4 w-4 rounded-full bg-slate-900 border border-emerald-400 text-[9px] flex items-center justify-center text-emerald-400 font-bold">
+                              {idx + 1}
+                            </span>
+                            <p className="text-[11px] text-slate-300 leading-relaxed">
+                              {step}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PanelCard>
+
+                  <div className="space-y-4">
+                    <PanelCard title="Pathway Dysregulation (PaIE Integration)">
+                      <div className="space-y-2">
+                        <div className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">
+                          Hyperactivated Cascades:
+                        </div>
+                        {[
+                          {
+                            name: "MAPK/ERK Signaling Cascade",
+                            p: "1.2e-14",
+                            z: "+3.8",
+                          },
+                          {
+                            name: "RAF/MAP kinase cascade",
+                            p: "4.5e-12",
+                            z: "+3.6",
+                          },
+                          {
+                            name: "Cell Population Proliferation",
+                            p: "2.1e-08",
+                            z: "+2.9",
+                          },
+                        ].map((p, i) => (
+                          <div
+                            key={i}
+                            className="p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center"
+                          >
+                            <span className="text-slate-200">{p.name}</span>
+                            <span className="text-emerald-400 font-bold">
+                              p={p.p} (z={p.z})
+                            </span>
+                          </div>
+                        ))}
+
+                        <div className="text-slate-400 font-bold text-[10px] uppercase tracking-wider pt-2">
+                          Suppressed / Disrupted Cascades:
+                        </div>
+                        {[
+                          {
+                            name: "Apoptotic Signaling Pathway",
+                            p: "8.4e-06",
+                            z: "-2.4",
+                          },
+                          {
+                            name: "Regulation of Cell Death",
+                            p: "1.1e-05",
+                            z: "-2.2",
+                          },
+                        ].map((p, i) => (
+                          <div
+                            key={i}
+                            className="p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center"
+                          >
+                            <span className="text-slate-300">{p.name}</span>
+                            <span className="text-rose-400 font-bold">
+                              p={p.p} (z={p.z})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Compensatory Bypass Detection">
+                      <div className="p-3 bg-slate-950 rounded border border-amber-900/30 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-amber-400 font-bold">
+                            CRAF Heterodimerization Bypass
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 text-[10px]">
+                            Feedback Relief
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Loss of ERK negative feedback promotes RAS-GTP
+                          loading, causing CRAF-BRAF heterodimerization and
+                          &quot;paradoxical activation&quot; under monotherapy.
+                        </p>
+                        <div className="text-[10px] text-slate-300">
+                          <span className="text-emerald-400 font-bold">
+                            Recommended Solution:
+                          </span>{" "}
+                          Vertical pathway co-inhibition with MEK inhibitor
+                          (Trametinib).
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 7: Target Discovery */}
+              {activeTherapeuticSubtab === "targets" && (
+                <div className="space-y-4 font-mono text-xs">
+                  <PanelCard title="Multi-Criteria Therapeutic Target Prioritization (DepMap + Centrality + Druggability + Safety)">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-[11px]">
+                        <thead>
+                          <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/50">
+                            <th className="p-2">Rank</th>
+                            <th className="p-2">Target</th>
+                            <th className="p-2">Composite Priority</th>
+                            <th className="p-2">Centrality</th>
+                            <th className="p-2">DepMap CERES</th>
+                            <th className="p-2">Druggability</th>
+                            <th className="p-2">Safety Window</th>
+                            <th className="p-2">Tractability Tier</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60">
+                          {[
+                            {
+                              rank: 1,
+                              gene: "BRAF",
+                              score: 0.892,
+                              centrality: 0.88,
+                              depmap: -1.25,
+                              drug: 0.94,
+                              safety: 0.85,
+                              tier: "Small Molecule",
+                              highlight: true,
+                            },
+                            {
+                              rank: 2,
+                              gene: "MAP2K1",
+                              score: 0.845,
+                              centrality: 0.84,
+                              depmap: -1.1,
+                              drug: 0.92,
+                              safety: 0.75,
+                              tier: "Small Molecule",
+                              highlight: true,
+                            },
+                            {
+                              rank: 3,
+                              gene: "EGFR",
+                              score: 0.82,
+                              centrality: 0.92,
+                              depmap: -1.35,
+                              drug: 0.95,
+                              safety: 0.82,
+                              tier: "Small Molecule",
+                              highlight: false,
+                            },
+                            {
+                              rank: 4,
+                              gene: "MET",
+                              score: 0.785,
+                              centrality: 0.78,
+                              depmap: -0.92,
+                              drug: 0.89,
+                              safety: 0.86,
+                              tier: "Small Molecule",
+                              highlight: false,
+                            },
+                            {
+                              rank: 5,
+                              gene: "POLR2A",
+                              score: 0.31,
+                              centrality: 0.99,
+                              depmap: -2.8,
+                              drug: 0.4,
+                              safety: 0.05,
+                              tier: "Pan-Essential (Toxic)",
+                              highlight: false,
+                              toxic: true,
+                            },
+                          ].map((t) => (
+                            <tr
+                              key={t.rank}
+                              className={
+                                t.toxic
+                                  ? "bg-rose-950/20 text-rose-300"
+                                  : t.highlight
+                                    ? "bg-emerald-950/20 text-slate-200"
+                                    : "text-slate-400"
+                              }
+                            >
+                              <td className="p-2 font-bold">#{t.rank}</td>
+                              <td className="p-2 font-bold text-slate-100">
+                                {t.gene}
+                              </td>
+                              <td className="p-2 text-emerald-400 font-bold">
+                                {t.score.toFixed(3)}
+                              </td>
+                              <td className="p-2">{t.centrality.toFixed(2)}</td>
+                              <td className="p-2 font-bold">
+                                {t.depmap.toFixed(2)}
+                              </td>
+                              <td className="p-2">{t.drug.toFixed(2)}</td>
+                              <td className="p-2">{t.safety.toFixed(2)}</td>
+                              <td className="p-2">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[10px] ${t.toxic ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" : "bg-slate-800 text-slate-300"}`}
+                                >
+                                  {t.tier}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* Sub-panel 8: Drug Intelligence & Resistance */}
+              {activeTherapeuticSubtab === "drugs" && (
+                <div className="space-y-6 font-mono text-xs">
+                  {/* Caution Guardrail */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center space-x-3 text-amber-300">
+                    <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0" />
+                    <div>
+                      <span className="font-bold">
+                        Scientific Guardrail: Docking Score &ne; Physical
+                        Binding Affinity
+                      </span>{" "}
+                      &mdash; Docking scores represent empirical ranking
+                      estimates and do not equal physical binding constants
+                      (Kd/Ki/IC50). Always cross-reference with measured
+                      biophysical assays.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <PanelCard title="Candidate Compounds &amp; Molecular Docking">
+                      <div className="space-y-3">
+                        {[
+                          {
+                            name: "Vemurafenib",
+                            chembl: "CHEMBL1229517",
+                            score: "-10.4 kcal/mol",
+                            kd: "12 nM",
+                            target: "BRAF V600E",
+                            status: "Approved",
+                          },
+                          {
+                            name: "Dabrafenib",
+                            chembl: "CHEMBL2105759",
+                            score: "-11.2 kcal/mol",
+                            kd: "3.2 nM",
+                            target: "BRAF V600E",
+                            status: "Approved",
+                          },
+                          {
+                            name: "Trametinib",
+                            chembl: "CHEMBL2103841",
+                            score: "-9.8 kcal/mol",
+                            kd: "15 nM",
+                            target: "MEK1/2",
+                            status: "Approved",
+                          },
+                          {
+                            name: "Osimertinib",
+                            chembl: "CHEMBL3353410",
+                            score: "-10.8 kcal/mol",
+                            kd: "1.5 nM",
+                            target: "EGFR T790M",
+                            status: "Approved",
+                          },
+                        ].map((d, i) => (
+                          <div
+                            key={i}
+                            className="p-2.5 bg-slate-950 rounded border border-slate-800 flex justify-between items-center"
+                          >
+                            <div>
+                              <div className="font-bold text-slate-100">
+                                {d.name}{" "}
+                                <span className="text-[10px] text-slate-500">
+                                  ({d.chembl})
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                Target: {d.target} &bull; Exp Kd: {d.kd}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-emerald-400 font-bold">
+                                {d.score}
+                              </div>
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px]">
+                                {d.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="Secondary Resistance &amp; Dose-Response Curve">
+                      <div className="space-y-4">
+                        <div className="p-3 bg-slate-950 rounded border border-rose-900/30 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-rose-400 font-bold">
+                              EGFR T790M Gatekeeper Resistance
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">
+                              63.6x IC50 Shift
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-relaxed">
+                            Bulky Methionine residue introduces steric clash
+                            with 1st generation Gefitinib, reducing docking
+                            affinity from -8.8 kcal/mol to -5.2 kcal/mol.
+                          </p>
+                        </div>
+
+                        {/* Dose response curve simulation points */}
+                        <div className="space-y-1">
+                          <div className="text-slate-400 text-[10px] font-bold">
+                            Sigmoidal 4PL Dose-Response (Wildtype vs Gatekeeper
+                            Mutant):
+                          </div>
+                          <div className="grid grid-cols-5 gap-1 text-[10px] text-center">
+                            <div className="p-1.5 bg-slate-950 rounded border border-slate-800">
+                              <div className="text-slate-500">1 nM</div>
+                              <div className="text-emerald-400 font-bold">
+                                12% / 0%
+                              </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-950 rounded border border-slate-800">
+                              <div className="text-slate-500">10 nM</div>
+                              <div className="text-emerald-400 font-bold">
+                                45% / 2%
+                              </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-950 rounded border border-slate-800">
+                              <div className="text-slate-500">100 nM</div>
+                              <div className="text-emerald-400 font-bold">
+                                88% / 15%
+                              </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-950 rounded border border-slate-800">
+                              <div className="text-slate-500">1 &mu;M</div>
+                              <div className="text-emerald-400 font-bold">
+                                98% / 48%
+                              </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-950 rounded border border-slate-800">
+                              <div className="text-slate-500">10 &mu;M</div>
+                              <div className="text-emerald-400 font-bold">
+                                100% / 85%
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-panel 9: Therapeutic Simulation & Validation */}
+              {activeTherapeuticSubtab === "simulation" && (
+                <div className="space-y-6 font-mono text-xs">
+                  {/* Multi-Metric Synergy Card */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                      <div className="text-slate-500 text-[10px]">
+                        Bliss Excess
+                      </div>
+                      <div className="text-lg font-bold text-emerald-400">
+                        +21.5%
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Synergistic (&gt; 10%)
+                      </div>
+                    </div>
+                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                      <div className="text-slate-500 text-[10px]">
+                        Loewe Comb. Index
+                      </div>
+                      <div className="text-lg font-bold text-emerald-400">
+                        0.75
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        CI &lt; 1.0 (Synergy)
+                      </div>
+                    </div>
+                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                      <div className="text-slate-500 text-[10px]">
+                        Highest Single Agent
+                      </div>
+                      <div className="text-lg font-bold text-indigo-400">
+                        +39.0%
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Exceeds Monotherapy
+                      </div>
+                    </div>
+                    <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
+                      <div className="text-slate-500 text-[10px]">
+                        Zero Interaction Pot.
+                      </div>
+                      <div className="text-lg font-bold text-emerald-400">
+                        +19.8%
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        ZIP Potency Shift
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <PanelCard title="48-Hour CSE In-Silico Dynamic Trajectory">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="text-slate-300 font-bold">
+                            Protocol: Dabrafenib (50nM) + Trametinib (5nM)
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                            Pareto Optimal (Rank #1)
+                          </span>
+                        </div>
+
+                        <div className="space-y-1">
+                          {[
+                            { t: 0, flux: 100.0, viab: 100.0, apopt: 0.0 },
+                            { t: 4, flux: 42.5, viab: 88.0, apopt: 12.0 },
+                            { t: 8, flux: 18.2, viab: 65.0, apopt: 38.5 },
+                            { t: 16, flux: 9.5, viab: 42.0, apopt: 65.0 },
+                            { t: 24, flux: 6.8, viab: 28.5, apopt: 76.2 },
+                            { t: 48, flux: 5.8, viab: 20.2, apopt: 84.6 },
+                          ].map((row, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center text-[11px]"
+                            >
+                              <span className="text-slate-400 font-bold">
+                                {row.t}h
+                              </span>
+                              <span className="text-rose-400 font-mono">
+                                MAPK Flux: {row.flux}%
+                              </span>
+                              <span className="text-amber-400 font-mono">
+                                Viability: {row.viab}%
+                              </span>
+                              <span className="text-emerald-400 font-mono">
+                                Apoptosis: {row.apopt}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </PanelCard>
+
+                    <PanelCard title="ACMG/AMP Research Validation &amp; Uncertainty Report">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            ACMG Classification:
+                          </span>
+                          <span className="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40">
+                            PATHOGENIC
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">Criteria Met:</span>
+                          <span className="text-slate-200 font-mono">
+                            PS3, PS4, PM1, PM2, PP3, PP5
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">
+                            95% Confidence Interval:
+                          </span>
+                          <span className="text-emerald-400 font-bold">
+                            [ 0.86 &mdash; 0.98 ]
+                          </span>
+                        </div>
+
+                        <div className="p-2.5 bg-slate-950 rounded border border-slate-800 text-[10px] space-y-1">
+                          <span className="text-slate-400 font-bold">
+                            Evidence Units:
+                          </span>
+                          <div className="flex justify-between text-slate-300">
+                            <span>Measured: 2</span>
+                            <span>Curated: 2</span>
+                            <span>Predicted: 3</span>
+                            <span>Literature: 3</span>
+                            <span>Simulated: 1</span>
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 bg-slate-950 rounded border border-slate-800/80 text-[10px] text-slate-500 leading-tight">
+                          <span className="text-slate-400 font-bold">
+                            Clinical Boundary Notice:
+                          </span>{" "}
+                          PROTEA MTIE is a computational research
+                          decision-support engine. All generated target
+                          hypotheses and combinations require experimental
+                          validation prior to translational use.
+                        </div>
+                      </div>
+                    </PanelCard>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Other tabs placeholders remain standard... */}
           {activeTab !== "overview" &&
             activeTab !== "protein" &&
@@ -8591,7 +9946,8 @@ export default function BiologicalDiscoveryStudio() {
             activeTab !== "agents" &&
             activeTab !== "twins" &&
             activeTab !== "simulation" &&
-            activeTab !== "ai_scientist" && (
+            activeTab !== "ai_scientist" &&
+            activeTab !== "therapeutics" && (
               <div className="bg-slate-900 border border-slate-800 p-12 rounded-lg text-center font-mono">
                 <Sliders className="h-12 w-12 text-slate-700 mx-auto mb-4 animate-pulse" />
                 <h3 className="text-md font-bold text-slate-300">

@@ -1,0 +1,103 @@
+# PROTEA Mutation & Therapeutic Intelligence Engine (MTIE) Configuration
+
+mutation_therapeutics:
+  variant:
+    default_genome_build: "GRCh38"
+    supported_builds: ["GRCh38", "GRCh37"]
+    max_vcf_records_batch: 5000
+    allow_multi_allelic_splitting: true
+    hgvs_strict_validation: true
+    annotation_sources:
+      - clinvar
+      - vep
+      - dbsnp
+      - gnomad
+      - cosmic
+
+  effect_prediction:
+    esm_model_name: "esm2_t33_650M_UR50D"
+    deleteriousness_threshold: -7.5  # ESM log-odds delta cutoff
+    conservation_weight: 0.35
+    structure_weight: 0.35
+    sequence_weight: 0.30
+    functional_classes:
+      - loss_of_function
+      - gain_of_function
+      - dominant_negative
+      - neutral_benign
+      - uncharacterized
+
+  structure:
+    reference_pdb_source: "alphafold_v4"
+    interface_distance_angstrom: 5.0
+    plddt_high_confidence_cutoff: 70.0
+    sasa_buried_threshold_fraction: 0.20
+    model_clash_tolerance: 0.40
+
+  stability:
+    folding_ddg:
+      destabilizing_threshold_kcal_mol: 1.5   # DeltaDeltaG > 1.5 kcal/mol
+      severely_destabilizing_threshold: 3.0
+      stabilizing_threshold_kcal_mol: -1.0
+    aggregation_propensity_cutoff: 0.65
+    allosteric_distortion_distance_angstrom: 10.0
+
+  interaction_rewiring:
+    branching_mode: "strict_versioned" # NEVER overwrite reference baseline
+    retention_score_threshold: 0.45
+    gain_of_interaction_pvalue_cutoff: 0.01
+    preserve_wildtype_in_graph: true
+
+  disease_mechanisms:
+    max_pathway_trace_depth: 4
+    paie_enrichment_pvalue_cutoff: 0.05
+    bre_reasoning_model: "mechanistic_causal"
+    feedback_bypass_detection: true
+
+  target_discovery:
+    depmap_dependency_cutoff: -0.5
+    centrality_weight: 0.30
+    druggability_weight: 0.40
+    safety_essentiality_weight: 0.30
+    tractability_tiers:
+      - small_molecule
+      - monoclonal_antibody
+      - protac_degrader
+      - rna_targeting
+
+  drug_intelligence:
+    sources: ["chembl", "bindingdb"]
+    max_docking_poses: 10
+    docking_score_cutoff_kcal_mol: -7.0
+    docking_score_caution: "Docking score is a computational ranking heuristic and does not equal physical binding affinity."
+    selectivity_off_target_threshold: 10.0 # Fold difference against off-targets
+
+  resistance:
+    gatekeeper_detection_enabled: true
+    ic50_shift_resistance_fold: 5.0
+    bypass_pathway_activation_threshold: 0.60
+
+  combination_therapy:
+    synergy_metrics:
+      - bliss_independence
+      - loewe_additivity
+      - highest_single_agent
+      - zero_interaction_potency
+    bliss_synergy_threshold: 10.0
+    loewe_synergy_threshold: 1.0 # Combination Index < 1.0
+    require_multi_metric_reporting: true
+
+  simulation:
+    cse_digital_twin_enabled: true
+    default_simulation_time_hours: 48.0
+    pareto_optimization:
+      disease_suppression_weight: 0.50
+      essential_preservation_weight: 0.30
+      toxicity_minimization_weight: 0.20
+
+  validation:
+    acmg_classification_enabled: true
+    acmg_criteria:
+      pathogenic: ["PVS1", "PS1", "PS2", "PS3", "PS4", "PM1", "PM2", "PM3", "PM4", "PM5", "PM6", "PP1", "PP2", "PP3", "PP4", "PP5"]
+      benign: ["BA1", "BS1", "BS2", "BS3", "BS4", "BP1", "BP2", "BP3", "BP4", "BP5", "BP6", "BP7"]
+    clinical_decision_support_boundary: "For research and computational hypothesis prioritization only; not approved for direct clinical diagnostics or prescribing."
