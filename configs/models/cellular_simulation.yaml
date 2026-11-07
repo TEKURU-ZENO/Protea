@@ -1,0 +1,78 @@
+# PROTEA - Phase 8: Cellular Simulation Engine (CSE) Configuration
+version: "1.0.0"
+
+simulation:
+  default_time_unit: "second"
+  default_concentration_unit: "micromolar"
+  default_execution_mode: "deterministic"
+  reproducibility:
+    fixed_seed: true
+    default_seed: 42
+    record_solver_version: true
+
+  ode:
+    default_solver: "LSODA"
+    fallback_solver: "RK45"
+    relative_tolerance: 1.0e-6
+    absolute_tolerance: 1.0e-9
+    max_step: null
+    default_time_span: [0.0, 100.0]
+    default_time_points: 101
+
+  stochastic:
+    default_solver: "gillespie"
+    tau_leaping_epsilon: 0.03
+    ensemble_size: 50
+    record_random_seed: true
+    max_reactions: 100000
+
+  metabolism:
+    default_method: "FBA"
+    flux_variability_fraction: 0.95
+    enforce_mass_balance: true
+    default_objective: "Biomass_Reaction"
+    solver: "scipy_linprog_highs"
+
+  gene_regulation:
+    default_hill_coefficient: 2.0
+    basal_transcription_rate: 0.05
+    maximal_transcription_rate: 1.0
+    mrna_degradation_rate: 0.1
+    protein_translation_rate: 0.5
+    protein_degradation_rate: 0.05
+
+  hybrid:
+    coupling_mode: "signaling_gene_regulation"
+    synchronization_interval: 1.0
+    boundary_smoothing: true
+    max_coupling_iterations: 100
+
+  calibration:
+    default_method: "least_squares"
+    fallback_method: "nelder_mead"
+    max_iterations: 500
+    parameter_bounds_required: true
+    relative_step: 1.0e-4
+
+  uncertainty:
+    monte_carlo_samples: 100
+    confidence_level: 0.95
+    sobol_samples: 256
+
+  interventions:
+    knockout_attenuation: 0.0
+    knockdown_attenuation: 0.30
+    overexpression_multiplier: 3.0
+    chemical_inhibition_ic50_default: 1.0
+
+  validation:
+    enforce_unit_consistency: true
+    enforce_stoichiometric_checks: true
+    validate_model_before_execution: true
+    mass_conservation_tolerance: 1.0e-5
+    non_negativity_tolerance: -1.0e-8
+
+  execution:
+    asynchronous_jobs: true
+    max_concurrent_jobs: 4
+    checkpoint_enabled: true

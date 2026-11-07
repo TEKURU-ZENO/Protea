@@ -27,10 +27,10 @@ pathway_intelligence:
   # 2. Functional Annotation & Gene Ontology
   annotation:
     gene_ontology:
-      aspects: ["BP", "MF", "CC"]  # Biological Process, Molecular Function, Cellular Component
+      aspects: ["BP", "MF", "CC"] # Biological Process, Molecular Function, Cellular Component
       min_depth: 2
       max_depth: 14
-      evidence_filter: []          # Empty = all evidence codes accepted (EXP, IDA, IPI, IMP, IGI, IEP, IEA)
+      evidence_filter: [] # Empty = all evidence codes accepted (EXP, IDA, IPI, IMP, IGI, IEP, IEA)
     subcellular_localization:
       compartments:
         - "nucleus"
@@ -79,7 +79,7 @@ pathway_intelligence:
   novelty:
     dark_matter:
       min_module_size: 4
-      max_annotation_ratio: 0.20   # Maximum fraction of proteins allowed to have known pathway annotations
+      max_annotation_ratio: 0.20 # Maximum fraction of proteins allowed to have known pathway annotations
       min_cohesion_score: 0.60
       min_mean_interaction_confidence: 0.70
     guilt_by_association:
@@ -107,7 +107,7 @@ pathway_intelligence:
       - "cleaves"
       - "complex_formation"
     propagation:
-      algorithm: "rwr"            # Random Walk with Restart
+      algorithm: "rwr" # Random Walk with Restart
       restart_probability: 0.30
       max_iterations: 100
       convergence_tolerance: 1e-6

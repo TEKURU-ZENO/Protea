@@ -2,12 +2,12 @@
 version: "1.0.0"
 
 digital_twin:
-  default_organism: "NCBI:9606"  # Homo sapiens
+  default_organism: "NCBI:9606" # Homo sapiens
   default_context:
     tissue: "liver"
     cell_type: "hepatocyte"
     condition: "healthy"
-  
+
   initialization:
     supported_modes:
       - "observed"
@@ -40,21 +40,21 @@ digital_twin:
 
   state_representation:
     dimensions:
-      - "gene_expression"       # log2(TPM + 1)
-      - "protein_abundance"     # log2(LFQ/iBAQ intensity)
-      - "protein_activity"      # inferred activity score [-1.0, 1.0]
-      - "phosphorylation"       # phosphosite occupancy [0.0, 1.0]
-      - "subcellular_location"  # nucleus, cytosol, membrane, mitochondria
-      - "pathway_activity"      # single-sample activity score [-2.0, 2.0]
-      - "interaction_status"    # active, repressed, rewired
-      - "cell_condition"        # healthy, stressed, oncogenic
-    
+      - "gene_expression" # log2(TPM + 1)
+      - "protein_abundance" # log2(LFQ/iBAQ intensity)
+      - "protein_activity" # inferred activity score [-1.0, 1.0]
+      - "phosphorylation" # phosphosite occupancy [0.0, 1.0]
+      - "subcellular_location" # nucleus, cytosol, membrane, mitochondria
+      - "pathway_activity" # single-sample activity score [-2.0, 2.0]
+      - "interaction_status" # active, repressed, rewired
+      - "cell_condition" # healthy, stressed, oncogenic
+
     status_types:
       - "OBSERVED"
       - "ESTIMATED"
       - "PREDICTED"
       - "SIMULATED"
-    
+
     missing_data_policy: "retain_missing_with_imputation_flag"
 
   state_estimation:
@@ -106,7 +106,7 @@ digital_twin:
     propagation:
       decay_factor: 0.80
       max_propagation_depth: 4
-      isolate_branch: true  # Scenario never overwrites parent observed baseline
+      isolate_branch: true # Scenario never overwrites parent observed baseline
 
   validation:
     metrics:

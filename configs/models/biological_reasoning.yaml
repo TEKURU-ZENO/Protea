@@ -8,15 +8,15 @@ biological_reasoning:
   # 1. Source Reliability & Evidence Hierarchy
   evidence_hierarchy:
     weights:
-      experimental_structures: 1.00     # X-ray, Cryo-EM, NMR
-      direct_binding_assays: 0.90      # Surface Plasmon Resonance, ITC
-      affinity_purification_ms: 0.85   # AP-MS, Co-IP
-      two_hybrid_screens: 0.75         # Y2H
-      curated_pathway_db: 0.85         # Reactome, KEGG curated reactions
-      differential_expression: 0.70    # RNA-seq, Microarray
-      text_mining_nlp: 0.55            # Automated literature mining
-      computational_gnn: 0.50          # GNN link prediction (IPE)
-      sequence_plm: 0.45               # Protein Language Model cosine similarity
+      experimental_structures: 1.00 # X-ray, Cryo-EM, NMR
+      direct_binding_assays: 0.90 # Surface Plasmon Resonance, ITC
+      affinity_purification_ms: 0.85 # AP-MS, Co-IP
+      two_hybrid_screens: 0.75 # Y2H
+      curated_pathway_db: 0.85 # Reactome, KEGG curated reactions
+      differential_expression: 0.70 # RNA-seq, Microarray
+      text_mining_nlp: 0.55 # Automated literature mining
+      computational_gnn: 0.50 # GNN link prediction (IPE)
+      sequence_plm: 0.45 # Protein Language Model cosine similarity
     deduplication:
       enabled: true
       collapse_shared_pubmed_ids: true
@@ -25,7 +25,7 @@ biological_reasoning:
   confidence_dimensions:
     evidence_strength:
       min_threshold: 0.30
-      saturation_count: 5               # Number of independent experiments for maximum strength
+      saturation_count: 5 # Number of independent experiments for maximum strength
     model_confidence:
       temperature_scaling: true
     biological_certainty:
@@ -57,7 +57,7 @@ biological_reasoning:
       downregulates: -1
       ubiquitinates: -1
       complex_formation: 1
-      binds: 0                          # Ambiguous sign
+      binds: 0 # Ambiguous sign
     distinguish_interaction_types: true # Physical binding vs regulatory effect vs causal influence
 
   # 5. Hypothesis Generation & Ranking
