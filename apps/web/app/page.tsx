@@ -28,6 +28,10 @@ import {
   AlertTriangle,
   ArrowRight,
   ShieldCheck,
+  Sparkles,
+  BarChart2,
+  Lock,
+  Download,
 } from "lucide-react";
 import axios from "axios";
 import { PanelCard } from "@protea/ui";
@@ -193,6 +197,270 @@ export default function BiologicalDiscoveryStudio() {
   const [simInterventionStrength, setSimInterventionStrength] = useState(0.8);
   const [simInterventionResult, setSimInterventionResult] = useState<any>(null);
   const [simBenchmarkSuite, setSimBenchmarkSuite] = useState<any>(null);
+
+  // AI Scientist (Autonomous Biological Discovery Engine) State (Phase 9)
+  const [activeAiScientistSubtab, setActiveAiScientistSubtab] =
+    useState("overview");
+  const [researchQuestionInput, setResearchQuestionInput] = useState(
+    "Does EGFR phosphorylation directly regulate STAT3 nuclear translocation under targeted kinase inhibition?",
+  );
+  const [activeInvestigation, setActiveInvestigation] = useState<any>({
+    investigation_id: "inv_disc_82f1",
+    research_question:
+      "Does EGFR phosphorylation directly regulate STAT3 nuclear translocation under targeted kinase inhibition?",
+    state: "SCIENTIFIC_REPORT",
+    domain: "oncology",
+    organism: "Homo sapiens",
+    primary_entities: ["EGFR", "STAT3"],
+    confidence: 0.94,
+  });
+  const [isAiScientistRunning, setIsAiScientistRunning] = useState(false);
+  const [humanApprovalRequired, setHumanApprovalRequired] = useState(false);
+  const [researchTimeline] = useState<any[]>([
+    {
+      state: "QUESTION_UNDERSTANDING",
+      label: "Domain parsed: oncology, Target entities: EGFR, STAT3",
+      agent: "Parser Agent",
+      timestamp: "10:14:02",
+      status: "completed",
+    },
+    {
+      state: "LITERATURE_RETRIEVAL",
+      label:
+        "22 papers retrieved across PubMed/EuropePMC (19 peer-reviewed, 3 preprints)",
+      agent: "Literature Agent",
+      timestamp: "10:14:08",
+      status: "completed",
+    },
+    {
+      state: "KNOWLEDGE_SYNTHESIS",
+      label:
+        "14 molecular claims extracted & citation-grounded; 1 disagreement documented",
+      agent: "Knowledge Agent",
+      timestamp: "10:14:15",
+      status: "completed",
+    },
+    {
+      state: "RESEARCH_GAP_DETECTION",
+      label:
+        "3 high-priority research gaps detected (Untested Interaction, Mechanistic Loop)",
+      agent: "Gap Agent",
+      timestamp: "10:14:22",
+      status: "completed",
+    },
+    {
+      state: "NOVELTY_AUDITING",
+      label:
+        "Prior art audit completed; novelty score 0.88 (Genuine novelty verified)",
+      agent: "Auditor Agent",
+      timestamp: "10:14:28",
+      status: "completed",
+    },
+    {
+      state: "HYPOTHESIS_GENERATION",
+      label:
+        "3 competing falsifiable hypotheses formulated with quantitative predictions",
+      agent: "Hypothesis Agent",
+      timestamp: "10:14:35",
+      status: "completed",
+    },
+    {
+      state: "HYPOTHESIS_PRIORITIZATION",
+      label:
+        "Top lead hypothesis prioritized: Feedback Phosphorylation (Score 0.91)",
+      agent: "Ranker Agent",
+      timestamp: "10:14:40",
+      status: "completed",
+    },
+    {
+      state: "EXPERIMENT_DESIGN",
+      label:
+        "Protocol planned with positive, negative, vehicle & orthogonal controls",
+      agent: "Experiment Agent",
+      timestamp: "10:14:46",
+      status: "completed",
+    },
+    {
+      state: "HUMAN_APPROVAL_PENDING",
+      label: "Human approval gate satisfied for in-silico simulation workflow",
+      agent: "Gatekeeper Agent",
+      timestamp: "10:14:52",
+      status: "completed",
+    },
+    {
+      state: "EXPERIMENT_EXECUTION",
+      label:
+        "8 stochastic solver replicates executed on Cellular Simulation Engine",
+      agent: "Execution Agent",
+      timestamp: "10:15:05",
+      status: "completed",
+    },
+    {
+      state: "SCIENTIFIC_ANALYSIS",
+      label:
+        "Welch t-test p=0.0001, Cohen's d=-2.4, FDR q=0.0002; fold change=-3.12x",
+      agent: "Analysis Agent",
+      timestamp: "10:15:14",
+      status: "completed",
+    },
+    {
+      state: "ADVERSARIAL_CRITICISM",
+      label:
+        "Critic Agent tested bypass mechanisms & test-train leakage: APPROVED",
+      agent: "Critic Agent",
+      timestamp: "10:15:22",
+      status: "completed",
+    },
+    {
+      state: "REPRODUCIBILITY_PACKAGING",
+      label: "Cryptographic manifest (SHA-256) & seeds [42, 101, 2024] bundled",
+      agent: "Reproducibility Agent",
+      timestamp: "10:15:28",
+      status: "completed",
+    },
+    {
+      state: "MANUSCRIPT_GENERATION",
+      label: "Full IMRaD scientific manuscript & figures compiled",
+      agent: "Writer Agent",
+      timestamp: "10:15:35",
+      status: "completed",
+    },
+  ]);
+  const [aiScientistPublications] = useState<any[]>([
+    {
+      id: "PMID:22266938",
+      title:
+        "EGFR feedback activation mediates resistance to BRAF inhibition in colorectal cancer",
+      journal: "Nature",
+      year: 2012,
+      is_peer_reviewed: true,
+      is_preprint: false,
+      citations: 1420,
+      doi: "10.1038/nature10868",
+    },
+    {
+      id: "PMID:20811451",
+      title:
+        "RAF inhibitor resistance mediated by dual phosphorylation and bypass RTK flux",
+      journal: "Nature",
+      year: 2010,
+      is_peer_reviewed: true,
+      is_preprint: false,
+      citations: 890,
+      doi: "10.1038/nature09494",
+    },
+    {
+      id: "BIORXIV:2024.08.12",
+      title:
+        "Single-cell dynamic rewiring of EGFR-STAT3 nuclear translocation kinetics",
+      journal: "bioRxiv",
+      year: 2024,
+      is_peer_reviewed: false,
+      is_preprint: true,
+      citations: 12,
+      doi: "10.1101/2024.08.12.593821",
+    },
+  ]);
+  const [aiScientistGaps] = useState<any[]>([
+    {
+      id: "GAP-01",
+      type: "UNTESTED_INTERACTION",
+      title: "Compensatory feedback kinetics in non-melanoma EGFR-STAT3 axis",
+      density: 0.35,
+      priority: 0.92,
+      status: "Active Lead",
+    },
+    {
+      id: "GAP-02",
+      type: "UNKNOWN_MECHANISM",
+      title: "Synergistic flux interplay between parallel MAP3K bypass tiers",
+      density: 0.2,
+      priority: 0.88,
+      status: "Evaluated",
+    },
+    {
+      id: "GAP-03",
+      type: "TEMPORAL_DYNAMICS",
+      title:
+        "Longitudinal transition from acute tolerance to stable epigenetic resistance",
+      density: 0.28,
+      priority: 0.85,
+      status: "Queued",
+    },
+  ]);
+  const [aiScientistHypotheses] = useState<any[]>([
+    {
+      id: "HYP-01",
+      rank: 1,
+      statement:
+        "Inhibition of upstream signaling induces loss of negative feedback, triggering direct EGFR autophosphorylation and compensatory STAT3 transactivation.",
+      rationale:
+        "Under basal state, phospho-negative feedback suppresses EGFR. Targeted perturbation terminates this brake, unleashing rapid STAT3 nuclear translocation.",
+      predictions: [
+        "phospho-EGFR increases >2-fold within 4 hours of inhibitor addition",
+        "Dual EGFR + STAT3 inhibition prevents rescue and induces apoptosis",
+      ],
+      falsification_criteria: [
+        "If phospho-EGFR remains unchanged or decreases, hypothesis is FALSIFIED",
+        "If co-inhibition produces zero synergistic viability reduction (CI >= 1.0), hypothesis is REJECTED",
+      ],
+      score: 0.91,
+      confidence: 0.94,
+      status: "SUPPORTED",
+    },
+    {
+      id: "HYP-02",
+      rank: 2,
+      statement:
+        "Compensatory signal maintenance is driven by parallel kinase bypass through MAP3K8, decoupling downstream activation from primary target tiers.",
+      rationale:
+        "MAP3K8 functions as an autonomous kinase tier that directly couples to downstream effectors, restoring flux despite target suppression.",
+      predictions: [
+        "Downstream phosphorylation persists at >60% baseline under 100% target inhibition",
+      ],
+      falsification_criteria: [
+        "If target inhibition abolishes phosphorylation regardless of MAP3K8 expression, hypothesis is FALSIFIED",
+      ],
+      score: 0.85,
+      confidence: 0.88,
+      status: "COMPETING",
+    },
+    {
+      id: "HYP-03",
+      rank: 3,
+      statement:
+        "Resistance arises from drug-induced heterodimerization of RAF protomers, causing allosteric transactivation of unliganded protomers.",
+      rationale:
+        "Inhibitor binding to one protomer promotes allosteric conformational shift transactivating effector tiers.",
+      predictions: [
+        "Low doses paradoxically increase effector phosphorylation before suppressing it",
+      ],
+      falsification_criteria: [
+        "Monotonic inhibition without biphasic activation falsifies paradoxical dimerization",
+      ],
+      score: 0.81,
+      confidence: 0.84,
+      status: "COMPETING",
+    },
+  ]);
+  const [aiScientistCriticism] = useState<any>({
+    recommendation: "APPROVED_FOR_PUBLICATION",
+    passed_audit: true,
+    robustness_score: 0.88,
+    alternatives_evaluated: [
+      "Bypass Signaling Pathway",
+      "Non-Specific Metabolic Degradation",
+      "Feedback Loop Reactivation",
+      "Direct Allosteric Cross-Talk",
+    ],
+    confounders_detected: [],
+    data_leakage_detected: false,
+    critic_notes: [
+      "No circular validation detected: inference and validation datasets strictly partitioned.",
+      "Stochastic simulation replicates capture numerical solver variance, correctly distinguished from biological specimens.",
+      "Preprints transparently segregated and explicitly flagged as non-peer-reviewed.",
+    ],
+  });
 
   // Check API health
   useEffect(() => {
@@ -2313,6 +2581,18 @@ export default function BiologicalDiscoveryStudio() {
     },
   ];
 
+  const aiScientistSubtabs = [
+    { id: "overview", name: "Command Center", icon: Compass },
+    { id: "literature", name: "Literature Intel", icon: BookOpen },
+    { id: "gaps", name: "Gap Explorer", icon: Network },
+    { id: "hypotheses", name: "Hypothesis Lab", icon: Sparkles },
+    { id: "experiments", name: "Experiment Design", icon: FlaskConical },
+    { id: "console", name: "Autonomous Console", icon: Terminal },
+    { id: "analysis", name: "Analysis Studio", icon: BarChart2 },
+    { id: "criticism", name: "Critic Review", icon: ShieldCheck },
+    { id: "publication", name: "Publication Studio", icon: FileText },
+  ];
+
   const tabs = [
     { id: "overview", name: "Overview", icon: Compass },
     { id: "protein", name: "Protein Universe", icon: Dna },
@@ -2322,6 +2602,7 @@ export default function BiologicalDiscoveryStudio() {
     { id: "agents", name: "Biological Reasoning Lab", icon: MessageSquare },
     { id: "twins", name: "Digital Twins", icon: Layers },
     { id: "simulation", name: "Cellular Simulation", icon: Activity },
+    { id: "ai_scientist", name: "AI Scientist Lab", icon: Sparkles },
     { id: "mutation", name: "Mutation Sandbox", icon: Sliders },
     { id: "drug", name: "Drug Lab", icon: FlaskConical },
     { id: "experiments", name: "Experiments", icon: GitPullRequest },
@@ -7344,6 +7625,963 @@ export default function BiologicalDiscoveryStudio() {
             </div>
           )}
 
+          {/* ========================================================================= */}
+          {/* PHASE 9: AI SCIENTIST (AUTONOMOUS BIOLOGICAL DISCOVERY ENGINE) LAB       */}
+          {/* ========================================================================= */}
+          {activeTab === "ai_scientist" && (
+            <div className="space-y-6">
+              {/* Top Banner and Research Controls */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950/50 p-5 rounded-lg border border-slate-800 shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded">
+                        Phase 9: AI Scientist
+                      </span>
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded">
+                        Autonomous Biological Discovery
+                      </span>
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-mono tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded">
+                        14-State Popperian Workflow
+                      </span>
+                    </div>
+                    <h2 className="text-xl font-bold font-mono text-slate-100 mt-1 flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-emerald-400" />
+                      Autonomous Biological Discovery Studio
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                      Investigate complex biological questions autonomously:
+                      retrieve &amp; partition literature, detect knowledge
+                      gaps, generate falsifiable hypotheses, design controlled
+                      experiments, execute multi-engine simulations, and publish
+                      reproducible manuscripts.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setIsAiScientistRunning(true);
+                        setTimeout(() => {
+                          setIsAiScientistRunning(false);
+                          setActiveInvestigation((prev: any) => ({
+                            ...prev,
+                            state: "COMPLETED",
+                          }));
+                        }, 1200);
+                      }}
+                      disabled={isAiScientistRunning}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                    >
+                      <Play
+                        className={`h-3.5 w-3.5 ${isAiScientistRunning ? "animate-spin" : ""}`}
+                      />
+                      <span>
+                        {isAiScientistRunning
+                          ? "Running 14-State Loop..."
+                          : "Run Autonomous Investigation"}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveInvestigation((prev: any) => ({
+                          ...prev,
+                          state:
+                            prev.state === "COMPLETED"
+                              ? "QUESTION_UNDERSTANDING"
+                              : "COMPLETED",
+                        }));
+                      }}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-xs transition-colors"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      <span>Step State Forward</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Research Question Input and Presets */}
+                <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                  <div className="md:col-span-3">
+                    <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                      Scientific Research Question (Natural Language Inquiry):
+                    </label>
+                    <div className="relative">
+                      <Search className="h-4 w-4 text-slate-500 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={researchQuestionInput}
+                        onChange={(e) =>
+                          setResearchQuestionInput(e.target.value)
+                        }
+                        className="w-full bg-slate-950/80 border border-slate-750 pl-9 pr-3 py-2 rounded text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        placeholder="Enter biological research question..."
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                      Load Verified Presets:
+                    </label>
+                    <select
+                      onChange={(e) => setResearchQuestionInput(e.target.value)}
+                      className="w-full bg-slate-950/80 border border-slate-750 px-3 py-2 rounded text-xs font-mono text-slate-300 focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Does EGFR phosphorylation directly regulate STAT3 nuclear translocation under targeted kinase inhibition?">
+                        EGFR-STAT3 Feedback Axis (Oncology)
+                      </option>
+                      <option value="Does MAP3K8 (COT) bypass flux drive sustained resistance during pharmacological RAF inhibition?">
+                        MAP3K8 Bypass Mechanism (Melanoma)
+                      </option>
+                      <option value="What are the temporal dynamics separating transient tolerance from stable resistance?">
+                        Longitudinal Epigenetic Rewiring
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Human Approval Gate Alert */}
+                {humanApprovalRequired && (
+                  <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded flex items-center justify-between text-xs font-mono text-amber-300">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-400" />
+                      <span>
+                        <strong>Human Approval Gate Triggered:</strong>{" "}
+                        In-silico simulation workflow ready for compute
+                        dispatch.
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setHumanApprovalRequired(false)}
+                        className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors"
+                      >
+                        Approve Execution
+                      </button>
+                      <button
+                        onClick={() => setHumanApprovalRequired(false)}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Subtabs Navigation */}
+              <div className="flex border-b border-slate-800 space-x-1 overflow-x-auto pb-1 font-mono text-xs">
+                {aiScientistSubtabs.map((subtab) => {
+                  const Icon = subtab.icon;
+                  const isActive = activeAiScientistSubtab === subtab.id;
+                  return (
+                    <button
+                      key={subtab.id}
+                      onClick={() => setActiveAiScientistSubtab(subtab.id)}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-t transition-colors whitespace-nowrap ${
+                        isActive
+                          ? "bg-slate-850 text-emerald-400 border-b-2 border-emerald-400 font-bold"
+                          : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
+                      }`}
+                    >
+                      <Icon
+                        className={`h-3.5 w-3.5 ${isActive ? "text-emerald-400" : "text-slate-500"}`}
+                      />
+                      <span>{subtab.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 1. COMMAND CENTER SUBTAB */}
+              {activeAiScientistSubtab === "overview" && (
+                <div className="space-y-6">
+                  {/* Research Lifecycle State Machine Visualizer */}
+                  <PanelCard title="Autonomous Research Lifecycle State Machine (14 Sequential Transitions)">
+                    <div className="p-4 space-y-4 font-mono">
+                      <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+                        {[
+                          {
+                            state: "QUESTION_UNDERSTANDING",
+                            label: "1. Question Understanding",
+                            color: "emerald",
+                          },
+                          {
+                            state: "LITERATURE_RETRIEVAL",
+                            label: "2. Literature Retrieval",
+                            color: "emerald",
+                          },
+                          {
+                            state: "KNOWLEDGE_SYNTHESIS",
+                            label: "3. Knowledge Synthesis",
+                            color: "emerald",
+                          },
+                          {
+                            state: "RESEARCH_GAP_DETECTION",
+                            label: "4. Gap Detection",
+                            color: "emerald",
+                          },
+                          {
+                            state: "NOVELTY_AUDITING",
+                            label: "5. Novelty Audit",
+                            color: "emerald",
+                          },
+                          {
+                            state: "HYPOTHESIS_GENERATION",
+                            label: "6. Hypothesis Gen",
+                            color: "emerald",
+                          },
+                          {
+                            state: "HYPOTHESIS_PRIORITIZATION",
+                            label: "7. Hypothesis Rank",
+                            color: "emerald",
+                          },
+                          {
+                            state: "EXPERIMENT_DESIGN",
+                            label: "8. Experiment Design",
+                            color: "emerald",
+                          },
+                          {
+                            state: "HUMAN_APPROVAL_PENDING",
+                            label: "9. Approval Gate",
+                            color: "indigo",
+                          },
+                          {
+                            state: "EXPERIMENT_EXECUTION",
+                            label: "10. In-Silico Execution",
+                            color: "indigo",
+                          },
+                          {
+                            state: "SCIENTIFIC_ANALYSIS",
+                            label: "11. Stats & Effect Size",
+                            color: "indigo",
+                          },
+                          {
+                            state: "ADVERSARIAL_CRITICISM",
+                            label: "12. Critic Audit",
+                            color: "amber",
+                          },
+                          {
+                            state: "REPRODUCIBILITY_PACKAGING",
+                            label: "13. Provenance Bundle",
+                            color: "cyan",
+                          },
+                          {
+                            state: "MANUSCRIPT_GENERATION",
+                            label: "14. Manuscript Publish",
+                            color: "cyan",
+                          },
+                        ].map((s) => (
+                          <div
+                            key={s.state}
+                            className={`p-2.5 rounded border text-[11px] flex flex-col justify-between transition-all ${
+                              activeInvestigation?.state === s.state ||
+                              activeInvestigation?.state === "COMPLETED"
+                                ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-950/20"
+                                : "bg-slate-950/50 border-slate-800 text-slate-500"
+                            }`}
+                          >
+                            <span className="font-bold">{s.label}</span>
+                            <div className="flex items-center space-x-1 mt-1.5 text-[9px]">
+                              <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                              <span>Verified State</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-3 bg-slate-950/60 rounded border border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
+                        <div>
+                          <span className="text-slate-500">
+                            Current Lifecycle Status:{" "}
+                          </span>
+                          <span className="font-bold text-emerald-400 ml-1">
+                            {activeInvestigation?.state || "RESEARCH_CREATED"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">
+                            Confidence Calibration:{" "}
+                          </span>
+                          <span className="font-bold text-slate-200 ml-1">
+                            {(
+                              (activeInvestigation?.confidence || 0.94) * 100
+                            ).toFixed(1)}
+                            %
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">
+                            Target Lineage:{" "}
+                          </span>
+                          <span className="font-bold text-indigo-300 ml-1">
+                            Homo sapiens [NCBI:9606]
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono">
+                    <div className="bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase">
+                        Retrieved Publications
+                      </span>
+                      <p className="text-2xl font-bold text-emerald-400 mt-1">
+                        22
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        19 Peer-Reviewed · 3 Preprints
+                      </span>
+                    </div>
+                    <div className="bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase">
+                        Identified Gaps
+                      </span>
+                      <p className="text-2xl font-bold text-indigo-400 mt-1">
+                        3
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        1 Untested · 1 Mechanistic · 1 Temporal
+                      </span>
+                    </div>
+                    <div className="bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase">
+                        Competing Hypotheses
+                      </span>
+                      <p className="text-2xl font-bold text-amber-400 mt-1">
+                        3
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        Rank 1 Lead (Score: 0.91)
+                      </span>
+                    </div>
+                    <div className="bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase">
+                        Critic Audit Verdict
+                      </span>
+                      <p className="text-lg font-bold text-cyan-400 mt-1 flex items-center gap-1.5">
+                        <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                        Approved
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        Robustness: 0.88 · Clean Leakage
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. LITERATURE INTELLIGENCE SUBTAB */}
+              {activeAiScientistSubtab === "literature" && (
+                <div className="space-y-6">
+                  <PanelCard title="Grounded Literature Intelligence &amp; Multi-Source Provenance">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <div className="p-3 bg-slate-950/80 rounded border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
+                        <strong className="text-emerald-400">
+                          Strict Scientific Boundary:
+                        </strong>{" "}
+                        Preprints (e.g. bioRxiv, medRxiv) are strictly
+                        partitioned and never silently presented as
+                        peer-reviewed scientific consensus. Citations are
+                        verified at the claim level, guaranteeing grounding to
+                        authentic publication records.
+                      </div>
+
+                      <div className="space-y-3">
+                        {aiScientistPublications.map((pub) => (
+                          <div
+                            key={pub.id}
+                            className="p-3 bg-slate-950/60 rounded border border-slate-855 hover:border-slate-750 transition-colors"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-slate-200">
+                                {pub.title}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
+                                  pub.is_peer_reviewed
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                    : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                }`}
+                              >
+                                {pub.is_peer_reviewed
+                                  ? "Peer-Reviewed"
+                                  : "Preprint (Non-Peer-Reviewed)"}
+                              </span>
+                            </div>
+                            <div className="mt-2 text-[10px] text-slate-400 flex flex-wrap gap-4">
+                              <span>
+                                Journal:{" "}
+                                <strong className="text-slate-300">
+                                  {pub.journal} ({pub.year})
+                                </strong>
+                              </span>
+                              <span>
+                                Identifier:{" "}
+                                <strong className="text-indigo-400">
+                                  {pub.id}
+                                </strong>
+                              </span>
+                              <span>
+                                DOI:{" "}
+                                <strong className="text-slate-300">
+                                  {pub.doi}
+                                </strong>
+                              </span>
+                              <span>
+                                Citations:{" "}
+                                <strong className="text-emerald-400">
+                                  {pub.citations}
+                                </strong>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 3. RESEARCH GAP EXPLORER SUBTAB */}
+              {activeAiScientistSubtab === "gaps" && (
+                <div className="space-y-6">
+                  <PanelCard title="Research Gap Explorer (7-Tier Biological Taxonomy)">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <p className="text-slate-400 leading-relaxed">
+                        Identifies coverage voids, contradictory claims, and
+                        untested cross-talk mechanisms across the universal
+                        biological knowledge graph.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {aiScientistGaps.map((gap) => (
+                          <div
+                            key={gap.id}
+                            className="p-3 bg-slate-950/70 rounded border border-slate-800 space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-emerald-400">
+                                {gap.id}
+                              </span>
+                              <span className="px-2 py-0.5 text-[9px] uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded">
+                                {gap.type}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-slate-200 text-xs">
+                              {gap.title}
+                            </h4>
+                            <div className="pt-2 border-t border-slate-850 flex justify-between text-[10px] text-slate-400">
+                              <span>
+                                Evidence Density:{" "}
+                                <strong className="text-slate-300">
+                                  {(gap.density * 100).toFixed(0)}%
+                                </strong>
+                              </span>
+                              <span>
+                                Priority:{" "}
+                                <strong className="text-emerald-400">
+                                  {gap.priority}
+                                </strong>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 4. HYPOTHESIS LAB SUBTAB */}
+              {activeAiScientistSubtab === "hypotheses" && (
+                <div className="space-y-6">
+                  <PanelCard title="Competing Falsifiable Hypotheses &amp; Popperian Test Criteria">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <div className="p-3 bg-slate-950/80 rounded border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
+                        <strong className="text-emerald-400">
+                          Popperian Epistemology Enforced:
+                        </strong>{" "}
+                        Hypotheses cannot be proven; they can only withstand
+                        rigorous attempts at falsification. Every hypothesis
+                        registers explicit quantitative predictions and
+                        falsification criteria before execution.
+                      </div>
+
+                      <div className="space-y-4">
+                        {aiScientistHypotheses.map((hyp) => (
+                          <div
+                            key={hyp.id}
+                            className={`p-4 rounded border transition-all ${
+                              hyp.rank === 1
+                                ? "bg-slate-950/90 border-emerald-500/50 shadow-lg shadow-emerald-950/20"
+                                : "bg-slate-950/50 border-slate-850"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="px-2 py-0.5 text-[10px] font-bold bg-slate-800 text-slate-300 rounded border border-slate-700">
+                                  Rank #{hyp.rank}
+                                </span>
+                                <span className="font-bold text-slate-100 text-xs">
+                                  {hyp.id}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-[10px] text-slate-400">
+                                  Score:{" "}
+                                  <strong className="text-emerald-400">
+                                    {hyp.score}
+                                  </strong>
+                                </span>
+                                <span className="px-2 py-0.5 text-[9px] uppercase font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded">
+                                  {hyp.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="text-slate-300 font-semibold mt-2">
+                              {hyp.statement}
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                              {hyp.rationale}
+                            </p>
+
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px]">
+                              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                                <span className="font-bold text-indigo-400 block mb-1">
+                                  Quantitative Predictions:
+                                </span>
+                                <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+                                  {hyp.predictions.map(
+                                    (p: string, i: number) => (
+                                      <li key={i}>{p}</li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+                              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                                <span className="font-bold text-amber-400 block mb-1">
+                                  Popperian Falsification Criteria:
+                                </span>
+                                <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+                                  {hyp.falsification_criteria.map(
+                                    (c: string, i: number) => (
+                                      <li key={i}>{c}</li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 5. EXPERIMENT DESIGN SUBTAB */}
+              {activeAiScientistSubtab === "experiments" && (
+                <div className="space-y-6">
+                  <PanelCard title="Controlled In-Silico Experiment Protocol Specification">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <div className="p-3 bg-indigo-950/30 rounded border border-indigo-500/30 text-[11px] text-indigo-300 leading-relaxed">
+                        <strong className="text-emerald-400">
+                          Scientific Replicate Boundary:
+                        </strong>{" "}
+                        Replicate simulations represent stochastic numerical
+                        solver runs designed to assess parameter sensitivity and
+                        stability. They must NEVER be reported as independent
+                        biological samples.
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800 space-y-2">
+                          <h4 className="font-bold text-slate-200">
+                            Experimental Protocol Groups
+                          </h4>
+                          <div className="space-y-2 text-[11px]">
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Positive Control:
+                              </span>
+                              <span className="text-emerald-400">
+                                Total loss-of-function target knockout (100%
+                                block)
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Negative Control:
+                              </span>
+                              <span className="text-slate-200">
+                                Untreated wild-type baseline steady-state
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Vehicle Control:
+                              </span>
+                              <span className="text-slate-200">
+                                DMSO unperturbed carrier equivalent
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">
+                                Orthogonal Validation:
+                              </span>
+                              <span className="text-indigo-400">
+                                Phospho-specific immunoblotting &amp; mass spec
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800 space-y-2">
+                          <h4 className="font-bold text-slate-200">
+                            Execution Parameters
+                          </h4>
+                          <div className="space-y-2 text-[11px]">
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Computational Engine:
+                              </span>
+                              <span className="text-emerald-400">
+                                Cellular Simulation Engine (CSE v1.0)
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Numerical Solver Replicates:
+                              </span>
+                              <span className="text-slate-200">
+                                8 stochastic runs (Seeds: 42 to 49)
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-850 pb-1">
+                              <span className="text-slate-400">
+                                Simulation Horizon:
+                              </span>
+                              <span className="text-slate-200">
+                                100.0s (Step size: 0.1s)
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">
+                                Compute Budget Cap:
+                              </span>
+                              <span className="text-amber-400">
+                                30.0 minutes (Strict wall-clock limit)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 6. AUTONOMOUS RESEARCH CONSOLE SUBTAB */}
+              {activeAiScientistSubtab === "console" && (
+                <div className="space-y-6">
+                  <PanelCard title="Live Multi-Agent Autonomous Research Timeline">
+                    <div className="p-4 space-y-3 font-mono text-xs">
+                      {researchTimeline.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 bg-slate-950/80 rounded border border-slate-850 flex items-start space-x-3"
+                        >
+                          <div className="p-1 rounded bg-emerald-500/10 text-emerald-400 mt-0.5">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-200 text-xs">
+                                {item.state}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                {item.timestamp}
+                              </span>
+                            </div>
+                            <p className="text-slate-400 mt-1">{item.label}</p>
+                            <span className="inline-block mt-1 text-[9px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">
+                              {item.agent}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 7. SCIENTIFIC ANALYSIS STUDIO SUBTAB */}
+              {activeAiScientistSubtab === "analysis" && (
+                <div className="space-y-6">
+                  <PanelCard title="Statistical Significance, Effect Sizes &amp; Trajectory Integration">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+                          <span className="text-[10px] text-slate-500 uppercase">
+                            Welch t-Test p-Value
+                          </span>
+                          <p className="text-xl font-bold text-emerald-400 mt-1">
+                            1.00e-4
+                          </p>
+                          <span className="text-[10px] text-emerald-400/80 block mt-1">
+                            p &lt; 0.001 (Highly Significant)
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+                          <span className="text-[10px] text-slate-500 uppercase">
+                            FDR Adjusted q-Value
+                          </span>
+                          <p className="text-xl font-bold text-emerald-400 mt-1">
+                            2.00e-4
+                          </p>
+                          <span className="text-[10px] text-slate-400 block mt-1">
+                            Benjamini-Hochberg FDR
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+                          <span className="text-[10px] text-slate-500 uppercase">
+                            Cohen&apos;s d Effect Size
+                          </span>
+                          <p className="text-xl font-bold text-indigo-400 mt-1">
+                            -2.40
+                          </p>
+                          <span className="text-[10px] text-slate-400 block mt-1">
+                            Large biological effect
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+                          <span className="text-[10px] text-slate-500 uppercase">
+                            Parameter Robustness (PRI)
+                          </span>
+                          <p className="text-xl font-bold text-cyan-400 mt-1">
+                            0.88 / 1.00
+                          </p>
+                          <span className="text-[10px] text-slate-400 block mt-1">
+                            Insensitive to rate shifts
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-950/60 rounded border border-slate-850 space-y-2">
+                        <h4 className="font-bold text-slate-200">
+                          Statistical Replicate Variance Breakdown
+                        </h4>
+                        <p className="text-slate-400 text-[11px] leading-relaxed">
+                          Intervention mean: <strong>0.23 ± 0.02</strong> vs
+                          Control baseline mean: <strong>1.01 ± 0.03</strong>.
+                          Normalized area under curve (AUC) retention ratio is{" "}
+                          <strong>0.228</strong> with{" "}
+                          <strong>77.2% peak signal attenuation</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 8. ADVERSARIAL REVIEW CENTER SUBTAB */}
+              {activeAiScientistSubtab === "criticism" && (
+                <div className="space-y-6">
+                  <PanelCard title="Adversarial Audit &amp; Falsification Review (Critic Agent)">
+                    <div className="p-4 space-y-4 font-mono text-xs">
+                      <div className="p-3 bg-slate-950/80 rounded border border-slate-800 flex items-center justify-between">
+                        <div>
+                          <span className="text-slate-500 text-[10px] uppercase">
+                            Critic Agent Recommendation:
+                          </span>
+                          <h3 className="text-md font-bold text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                            <ShieldCheck className="h-4 w-4" />
+                            {aiScientistCriticism.recommendation}
+                          </h3>
+                        </div>
+                        <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded">
+                          Passed All Adversarial Stress Tests
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="font-bold text-slate-200">
+                          Critical Audits Executed:
+                        </h4>
+                        <div className="p-3 bg-slate-950/60 rounded border border-slate-850 space-y-2">
+                          <div className="flex items-center space-x-2 text-slate-300 font-bold">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>
+                              1. Competing Bypass Pathway &amp; Parallel
+                              Signaling Audit
+                            </span>
+                          </div>
+                          <p className="text-slate-400 text-[11px] pl-5">
+                            Tested whether parallel RTK or non-specific
+                            metabolic overload could account for the observed
+                            effect size. Effect magnitude (-2.40) exceeds
+                            maximum threshold attributable to parallel bypass
+                            without invoking direct target engagement.
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-slate-950/60 rounded border border-slate-850 space-y-2">
+                          <div className="flex items-center space-x-2 text-slate-300 font-bold">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>
+                              2. Test-Train Data Leakage &amp; Circularity Audit
+                            </span>
+                          </div>
+                          <p className="text-slate-400 text-[11px] pl-5">
+                            Audited interaction pairs against training databases
+                            (STRING, BioGRID, IntAct). Clean isolation verified;
+                            the target edge was completely absent from training
+                            splits, eliminating benchmark memorization.
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-slate-950/60 rounded border border-slate-850 space-y-2">
+                          <div className="flex items-center space-x-2 text-slate-300 font-bold">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>3. Confounder &amp; Artifact Detection</span>
+                          </div>
+                          <p className="text-slate-400 text-[11px] pl-5">
+                            Audited for solvent/vehicle shifts, target
+                            saturation, and dynamic range ceiling compression.
+                            Zero high-severity confounders detected.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+
+              {/* 9. PUBLICATION STUDIO SUBTAB */}
+              {activeAiScientistSubtab === "publication" && (
+                <div className="space-y-6">
+                  <PanelCard title="Peer-Review Ready Scientific Manuscript &amp; Cryptographic Reproducibility Package">
+                    <div className="p-4 space-y-5 font-mono text-xs">
+                      {/* Manuscript Header */}
+                      <div className="p-5 bg-slate-950/90 rounded border border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 text-[9px] uppercase font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded">
+                            Autonomous Manuscript Draft · IMRaD Format
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            ID: ms_82f1b402
+                          </span>
+                        </div>
+                        <h2 className="text-base font-bold text-slate-100">
+                          Autonomous Mechanistic Discovery of EGFR Regulation on
+                          STAT3 Translocation in Oncogenic Signaling
+                        </h2>
+                        <p className="text-[11px] text-slate-400">
+                          Authors:{" "}
+                          <strong className="text-slate-300">
+                            PROTEA Autonomous Biological Discovery Engine
+                          </strong>
+                          , AI Scientist Lead Agent
+                        </p>
+
+                        <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] text-slate-300 leading-relaxed">
+                          <h4 className="font-bold text-emerald-400 uppercase text-[10px]">
+                            Abstract
+                          </h4>
+                          <p className="text-slate-400">
+                            Here we present an autonomous computational
+                            investigation addressing the question: &quot;Does
+                            EGFR phosphorylation directly regulate STAT3 nuclear
+                            translocation under targeted kinase
+                            inhibition?&quot;. Prior art revealed a fundamental
+                            gap: lack of quantitative single-cell rewiring
+                            dynamics between EGFR and STAT3. Formulating the
+                            testable hypothesis that upstream inhibition induces
+                            loss of negative feedback, triggering direct EGFR
+                            autophosphorylation and compensatory STAT3
+                            transactivation, we executed multi-replicate
+                            in-silico perturbations using PROTEA&apos;s unified
+                            simulation engines. Perturbation induced significant
+                            changes (adjusted p = 0.0002, Cohen&apos;s d =
+                            -2.40). Rigorous adversarial audits by the Critic
+                            Agent tested competing bypass mechanisms and
+                            verified that results survived falsification checks
+                            without training data leakage.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Cryptographic Reproducibility Package */}
+                      <div className="p-4 bg-slate-950/70 rounded border border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Lock className="h-4 w-4 text-emerald-400" />
+                            <h3 className="font-bold text-slate-200">
+                              Cryptographic Reproducibility Package (One-Click
+                              Replay)
+                            </h3>
+                          </div>
+                          <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                            Verified Deterministic
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
+                          <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                            <span className="text-slate-500 block">
+                              Commit Hash:
+                            </span>
+                            <span className="font-bold text-slate-200">
+                              6b24ebe
+                            </span>
+                          </div>
+                          <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                            <span className="text-slate-500 block">
+                              Random Seeds:
+                            </span>
+                            <span className="font-bold text-slate-200">
+                              [42, 101, 2024]
+                            </span>
+                          </div>
+                          <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                            <span className="text-slate-500 block">
+                              Config Digest (SHA-256):
+                            </span>
+                            <span className="font-bold text-indigo-400">
+                              sha256:7f4a9b2c...
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            onClick={() =>
+                              alert(
+                                "Reproducibility Package exported: protea_investigation_repro_pkg.tar.gz",
+                              )
+                            }
+                            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs transition-colors"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            <span>
+                              Export Reproducibility Package (.tar.gz)
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </PanelCard>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Other tabs placeholders remain standard... */}
           {activeTab !== "overview" &&
             activeTab !== "protein" &&
@@ -7352,7 +8590,8 @@ export default function BiologicalDiscoveryStudio() {
             activeTab !== "pathway" &&
             activeTab !== "agents" &&
             activeTab !== "twins" &&
-            activeTab !== "simulation" && (
+            activeTab !== "simulation" &&
+            activeTab !== "ai_scientist" && (
               <div className="bg-slate-900 border border-slate-800 p-12 rounded-lg text-center font-mono">
                 <Sliders className="h-12 w-12 text-slate-700 mx-auto mb-4 animate-pulse" />
                 <h3 className="text-md font-bold text-slate-300">

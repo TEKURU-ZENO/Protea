@@ -1,0 +1,73 @@
+# PROTEA AI Scientist (Autonomous Biological Discovery Engine - ABDE) Configuration
+
+ai_scientist:
+  workflow:
+    max_research_iterations: 5
+    require_research_plan: true
+    require_evidence_grounding: true
+    require_adversarial_review: true
+    require_human_approval_for_execution: true
+    state_machine_timeout_seconds: 300
+
+  literature:
+    max_results_per_query: 100
+    deduplicate_publications: true
+    include_preprints: true
+    distinguish_peer_reviewed: true
+    require_publication_provenance: true
+    adapters:
+      - pubmed
+      - europe_pmc
+      - openalex
+      - crossref
+
+  hypotheses:
+    max_candidates: 10
+    require_falsifiable_predictions: true
+    require_alternative_hypotheses: true
+    prioritization_weights:
+      evidence_strength: 0.25
+      biological_plausibility: 0.25
+      testability: 0.20
+      novelty: 0.15
+      uncertainty_penalty: 0.15
+
+  experiments:
+    require_control_group: true
+    require_statistical_plan: true
+    require_human_approval: true
+    default_replicates: 5
+    supported_interventions:
+      - knockout
+      - knockdown
+      - overexpression
+      - chemical_inhibition
+      - dose_response
+
+  execution:
+    max_concurrent_jobs: 4
+    max_compute_budget_seconds: 120
+    allow_arbitrary_code: false
+    allow_unrestricted_database_queries: false
+    sandboxed_execution: true
+
+  criticism:
+    require_contradiction_search: true
+    require_robustness_analysis: true
+    require_assumption_review: true
+    require_leakage_check: true
+    require_confounder_audit: true
+
+  reproducibility:
+    record_random_seeds: true
+    record_model_versions: true
+    record_dataset_hashes: true
+    preserve_execution_trace: true
+    export_reproducibility_package: true
+
+  reporting:
+    require_citations: true
+    require_limitations: true
+    distinguish_predictions_from_observations: true
+    require_human_review: true
+    manuscript_format: "nature_biotechnology"
