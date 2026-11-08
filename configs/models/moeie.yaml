@@ -1,0 +1,117 @@
+# PROTEA Multi-Omics & Evolution Intelligence Engine (MOEIE) Configuration
+
+moeie:
+  ingestion:
+    supported_modalities:
+      - genomics
+      - transcriptomics
+      - proteomics
+      - phosphoproteomics
+      - epigenomics
+      - metabolomics
+      - single_cell
+      - spatial
+    canonical_species:
+      - taxonomy_id: 9606
+        name: "Homo sapiens"
+        common_name: "Human"
+      - taxonomy_id: 10090
+        name: "Mus musculus"
+        common_name: "Mouse"
+      - taxonomy_id: 7955
+        name: "Danio rerio"
+        common_name: "Zebrafish"
+      - taxonomy_id: 7227
+        name: "Drosophila melanogaster"
+        common_name: "Fruit fly"
+      - taxonomy_id: 6239
+        name: "Caenorhabditis elegans"
+        common_name: "Nematode"
+      - taxonomy_id: 4932
+        name: "Saccharomyces cerevisiae"
+        common_name: "Budding yeast"
+    identifier_registries:
+      - uniprot
+      - ensembl
+      - ncbi_gene
+      - refseq
+      - hgnc
+      - orthodb
+
+  preprocessing:
+    preserve_raw_and_corrected: true
+    transcriptomics:
+      target_sum: 10000
+      log_transform: true
+      min_genes_per_cell: 200
+      min_cells_per_gene: 3
+    proteomics:
+      missing_value_imputation: "min_prob"
+      median_normalization: true
+    epigenomics:
+      min_peak_accessibility_fraction: 0.02
+    spatial:
+      min_counts_per_spot: 500
+
+  representation:
+    model_family: "shared_private_latent_vae"
+    shared_latent_dim: 16
+    private_latent_dim: 8
+    contrastive_temperature: 0.07
+    missing_modality_dropout_prob: 0.20
+    learning_rate: 0.001
+    max_epochs: 100
+
+  cellular:
+    clustering_resolution: 0.6
+    n_neighbors: 15
+    pseudotime_method: "paga_diffusion"
+    pseudotime_disclaimer: "Pseudotime represents an inferred ordering of cellular transcriptomic states and does not equal chronological time."
+    cell_communication:
+      min_expressing_cell_fraction: 0.10
+      database: "liana_curated"
+
+  spatial:
+    coordinate_system: "microns"
+    neighborhood_k: 6
+    moran_i_pvalue_cutoff: 0.01
+    segmentation_confidence_cutoff: 0.70
+
+  regulatory:
+    tf_regulon_min_targets: 10
+    enrichment_method: "ulm" # Univariate Linear Model
+    discordance_threshold_zscore: 1.5
+
+  evolution:
+    orthology_consensus_threshold: 0.65
+    phylogenetic_tree_method: "maximum_likelihood_heuristic"
+    conservation_metric: "phylop_phastcons"
+    domain_database: "pfam_interpro"
+
+  evolutionary_interactome:
+    network_alignment_alpha: 0.60 # Weight between topological and sequence similarity
+    coverage_uncertainty_aware: true
+    coverage_penalty_factor: 0.40
+    lineage_specificity_fdr_cutoff: 0.05
+
+  prediction:
+    evolution_aware_weight: 0.35
+    sequence_weight: 0.35
+    network_weight: 0.30
+
+  therapeutics:
+    homolog_selectivity_threshold_fold: 5.0
+    conservation_importance_weight: 0.30
+    selectivity_weight: 0.40
+    safety_essentiality_weight: 0.30
+    model_organisms: [10090, 7955, 7227]
+
+  validation:
+    require_donor_splitting: true
+    require_family_disjoint_splits: true
+    evidence_tiers:
+      - observed
+      - curated
+      - inferred
+      - predicted
+      - simulated
