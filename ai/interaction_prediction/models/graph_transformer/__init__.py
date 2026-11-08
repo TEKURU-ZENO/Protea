@@ -1,25 +1,29 @@
+# ai/interaction_prediction/models/graph_transformer/__init__.py
 from ai.interaction_prediction.models.base import BasePredictionModel
 from ai.interaction_prediction.registry import ipe_registry
 from typing import Dict, Any
 
 class GraphTransformerPredictor(BasePredictionModel):
+    """Graph Transformer model stub. Marked as uninstantiated mock until trained on full STRING dataset."""
+
     def train(self, data: Any, epochs: int = 10, lr: float = 0.01) -> Dict[str, Any]:
-        return {"losses": [0.4, 0.2], "final_loss": 0.2}
+        return {"status": "uninstantiated_mock", "is_mock": True}
 
     def predict(self, data: Any) -> Dict[str, Any]:
         return {
-            "link_probability": 0.941,
-            "interaction_type_probabilities": {
-                "binds": 0.05, "activates": 0.88, "inhibits": 0.02, "phosphorylates": 0.03, "complex formation": 0.01, "unknown": 0.01
-            },
-            "node_functional_annotations": {
-                "GO:0005515 (protein binding)": 0.94,
-                "GO:0005634 (nucleus)": 0.85
-            }
+            "link_probability": 0.50,
+            "interaction_type_probabilities": {"unknown": 1.0},
+            "node_functional_annotations": {},
+            "is_mock": True,
+            "execution_mode": "mock_uninstantiated",
+            "warning": "MOCK STUB: Graph Transformer is uninstantiated and not trained on STRING PPI dataset. Use 'graphsage' for genuine trained inference."
         }
 
     def evaluate(self, data: Any) -> Dict[str, float]:
-        return {"roc_auc": 0.941, "f1": 0.902}
+        return {
+            "is_mock": True,
+            "status": "uninstantiated_no_genuine_metrics"
+        }
 
     def save(self, path: str):
         pass
@@ -31,3 +35,4 @@ class GraphTransformerPredictor(BasePredictionModel):
         pass
 
 ipe_registry.register("graph_transformer", GraphTransformerPredictor)
+ipe_registry.register("graphtransformer", GraphTransformerPredictor)

@@ -1,3 +1,5 @@
+# ai/interaction_prediction/datasets/graph_builder.py
+import os
 import torch
 from typing import Dict, Any, List
 from services.api.core.neo4j import neo4j_client
@@ -5,20 +7,52 @@ from services.api.core.logging import logger
 from ai.protein_foundation.registry import registry
 from ai.interaction_prediction.registry import ipe_registry
 
+STRING_GRAPH_PATH = "data/string/processed_string_graph.pt"
+
 class GraphDatasetBuilder:
     def __init__(self, default_dim: int = 1280):
         self.default_dim = default_dim
 
     def build_dataset_from_neo4j(self) -> Dict[str, Any]:
-        """Fetches the active interactome from Neo4j and compiles PyG tensors."""
+        """Fetches the active interactome from Neo4j or loads the real STRING PPI graph dataset."""
         driver = neo4j_client.driver
         if not driver:
-            # Fallback mock dataset for testing & offline mode
-            logger.warning("[IPE BUILDER] Neo4j is offline. Initializing fallback mock graph dataset.")
+            # Check for local real STRING graph first before falling back to synthetic mock
+            if os.path.exists(STRING_GRAPH_PATH):
+                try:
+                    data = torch.load(STRING_GRAPH_PATH, map_location="cpu")
+                    pos_edges = data["pos_edges"]
+                    src, dst = [], []
+                    for u, v in pos_edges:
+                        src.extend([u, v])
+                        dst.extend([v, u])
+                    edge_index = torch.tensor([src, dst], dtype=torch.long)
+                    labels = torch.ones(edge_index.shape[1], dtype=torch.float)
+                    logger.info(f"[IPE BUILDER] Loaded real STRING PPI dataset ({len(data['proteins'])} proteins, {len(pos_edges)} edges).")
+                    return {
+                        "x": data["x"],
+                        "edge_index": edge_index,
+                        "labels": labels,
+                        "node_mapping": data["proteins"],
+                        "is_mock": False,
+                        "dataset": "STRING v12 Human Core PPI Graph"
+                    }
+                except Exception as e:
+                    logger.warning(f"[IPE BUILDER] Failed loading STRING dataset: {e}")
+
+            # Fallback explicitly labeled mock dataset for testing & offline mode
+            logger.warning("[IPE BUILDER] Neo4j and local STRING datasets offline. Initializing labeled fallback mock graph dataset.")
             x = torch.randn(10, self.default_dim)
             edge_index = torch.tensor([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]], dtype=torch.long)
             labels = torch.tensor([1, 1, 1, 1, 1, 0, 0, 0, 0, 0], dtype=torch.float)
-            return {"x": x, "edge_index": edge_index, "labels": labels}
+            return {
+                "x": x,
+                "edge_index": edge_index,
+                "labels": labels,
+                "is_mock": True,
+                "execution_mode": "mock_fallback",
+                "warning": "MOCK GRAPH: Neo4j and local STRING datasets offline; returning synthetic graph."
+            }
 
         try:
             with driver.session() as session:
@@ -33,7 +67,6 @@ class GraphDatasetBuilder:
                 
                 esm = registry.get("esm2")
                 for pid, idx in prot_to_idx.items():
-                    # Generate mock/actual embedding for each protein
                     emb = esm.embed("M" * 50)["pooled"]
                     x[idx] = torch.tensor(emb)
 
@@ -55,7 +88,6 @@ class GraphDatasetBuilder:
                         targets.append(prot_to_idx[id2])
                         labels.append(1.0) # Positive edge
 
-                # Edge index representation
                 edge_index = torch.tensor([sources, targets], dtype=torch.long)
                 labels_tensor = torch.tensor(labels, dtype=torch.float)
                 
@@ -63,14 +95,22 @@ class GraphDatasetBuilder:
                     "x": x,
                     "edge_index": edge_index,
                     "labels": labels_tensor,
-                    "node_mapping": prot_list
+                    "node_mapping": prot_list,
+                    "is_mock": False,
+                    "dataset": "Neo4j Active Knowledge Graph"
                 }
         except Exception as e:
             logger.error(f"[IPE BUILDER] Neo4j graph data assembly failed: {e}")
-            # Fallback
             x = torch.randn(10, self.default_dim)
             edge_index = torch.tensor([[0, 1, 2, 3, 4], [1, 2, 3, 4, 0]], dtype=torch.long)
             labels = torch.tensor([1, 1, 1, 1, 1], dtype=torch.float)
-            return {"x": x, "edge_index": edge_index, "labels": labels}
+            return {
+                "x": x,
+                "edge_index": edge_index,
+                "labels": labels,
+                "is_mock": True,
+                "execution_mode": "mock_fallback",
+                "warning": f"MOCK GRAPH: Neo4j assembly failed ({e}); returning synthetic graph."
+            }
 
 graph_dataset_builder = GraphDatasetBuilder()

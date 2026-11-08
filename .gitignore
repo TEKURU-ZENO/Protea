@@ -24,6 +24,8 @@ ENV/
 *.db
 *.sqlite
 data/
+!data/benchmarks/
+!data/string/
 postgres_data/
 neo4j_data/
 redis_data/

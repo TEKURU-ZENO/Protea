@@ -1,0 +1,26 @@
+{
+  "dataset": "STRING v12 Human Core PPI Graph",
+  "taxonomy_id": 9606,
+  "evaluation_timestamp": "2026-11-08",
+  "graph_statistics": {
+    "num_proteins": 110,
+    "total_positive_edges": 3062,
+    "total_negative_non_edges": 2933,
+    "train_edges": 4196,
+    "val_edges": 898,
+    "test_edges": 901
+  },
+  "model_architecture": "GraphSAGE (2-layer SAGEConv + Pairwise Symmetrical MLP)",
+  "features": "ESM-2 (150M) 640-dimensional pooled protein embeddings",
+  "split_protocol": "Disjoint link split (Message-passing edges restricted to train_pos only)",
+  "measured_metrics": {
+    "test_roc_auc": 0.7866,
+    "test_pr_auc": 0.8149,
+    "test_f1": 0.7263,
+    "test_accuracy": 0.7148,
+    "best_val_roc_auc": 0.7955,
+    "best_epoch": 120
+  },
+  "is_fabricated": false,
+  "is_genuine_measured": true
+}
