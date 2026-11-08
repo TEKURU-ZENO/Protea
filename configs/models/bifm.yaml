@@ -1,0 +1,169 @@
+# ==============================================================================
+# PROTEA Phase 12: Biological Intelligence Foundation Model (BIFM) Configuration
+# The unified representation, multi-task learning, world model, and reasoning layer
+# connecting PIE, UBKG, IPE, PaIE, BRE, DIT, CSE, ABDE, MTIE, and MOEIE.
+# ==============================================================================
+
+model:
+  name: "BIFM-Core"
+  version: "1.0.0"
+  architecture: "Multimodal Modular Biological Foundation Model"
+  framework: "PyTorch 2.3+ / Geometric / Transformers"
+
+representations:
+  canonical:
+    unified_latent_dim: 256
+    shared_latent_dim: 64
+    private_latent_dim: 32
+    embedding_version: "bifm_rep_v1"
+    preserve_raw_embeddings: true
+    storage_precision: "float32"
+    provenance_tracking: true
+    entity_domains:
+      - "molecular"
+      - "structural"
+      - "interaction"
+      - "functional"
+      - "cellular"
+      - "disease"
+      - "evolutionary"
+      - "experimental"
+      - "therapeutic"
+
+encoders:
+  sequence:
+    primary_model: "esm2_t33_650M_UR50D"
+    backup_model: "prot_t5_xl_uniref50"
+    embedding_dim: 1280
+    projection_dim: 256
+    max_sequence_length: 1024
+    pooling: "mean"
+  structure:
+    primary_model: "egnn_geometric_encoder"
+    coordinate_features: ["ca_coords", "dihedral_angles", "plddt"]
+    embedding_dim: 512
+    projection_dim: 256
+  interaction:
+    primary_model: "gatv2_graphsage_hybrid"
+    graph_dim: 256
+    projection_dim: 256
+    num_hops: 2
+  pathway:
+    primary_model: "hypergraph_reaction_encoder"
+    pathway_dim: 256
+    projection_dim: 256
+  omics:
+    primary_model: "scvi_mofa_plus_encoder"
+    omics_features_dim: 128
+    projection_dim: 256
+  cellular:
+    primary_model: "cell_state_classifier"
+    cell_latent_dim: 128
+    projection_dim: 256
+  spatial:
+    primary_model: "spatial_knn_graph_encoder"
+    spot_dim: 64
+    projection_dim: 256
+  evolution:
+    primary_model: "phylogenetic_conservation_encoder"
+    conservation_dim: 64
+    projection_dim: 256
+  literature:
+    primary_model: "biomed_sentence_transformer"
+    text_dim: 768
+    projection_dim: 256
+
+fusion:
+  strategy: "shared_private_cross_attention"
+  temperature: 0.07
+  contrastive_weight: 0.35
+  reconstruction_weight: 0.25
+  disentanglement_weight: 0.20
+  graph_consistency_weight: 0.20
+  modality_dropout_prob: 0.20
+  missing_modality_imputation:
+    enabled: true
+    method: "bayesian_latent_reconstruction"
+    uncertainty_envelope_std: 1.96
+
+grounding:
+  vector_search:
+    collection: "bifm_multimodal_embeddings"
+    metric: "cosine"
+    top_k: 15
+  graph_traversal:
+    neo4j_max_depth: 3
+    edge_confidence_threshold: 0.70
+  ontology_validation:
+    enforce_go_dag_constraints: true
+    enforce_hpo_phenotype_links: true
+  evidence_stratification:
+    minimum_provenance_tier: 4  # Tier 1 (Observed) to 5 (Simulated)
+
+multitask_heads:
+  protein_function:
+    enabled: true
+    classes: 1500
+    loss_weight: 1.0
+  protein_interaction:
+    enabled: true
+    output_type: "probability_and_class"
+    loss_weight: 1.2
+  evolution_transfer:
+    enabled: true
+    taxa_supported: [9606, 10090, 7955, 7227, 6239, 4932]
+    loss_weight: 0.9
+  mutation_effect:
+    enabled: true
+    loss_weight: 1.1
+  pathway_membership:
+    enabled: true
+    loss_weight: 0.8
+  therapeutic_prioritization:
+    enabled: true
+    loss_weight: 1.0
+
+context_conditioning:
+  organisms:
+    human: 9606
+    mouse: 10090
+    zebrafish: 7955
+    fly: 7227
+    worm: 6239
+    yeast: 4932
+  context_embedding_dim: 64
+  conditioning_method: "film_modulation"
+
+world_model:
+  latent_state_dim: 128
+  transition_steps: 10
+  temporal_dt: 1.0
+  uncertainty_estimation: "mc_dropout_ensemble"
+  ensemble_size: 5
+  supported_interventions:
+    - "gene_knockout"
+    - "gene_knockdown"
+    - "protein_inhibition"
+    - "protein_overexpression"
+    - "missense_mutation"
+    - "small_molecule_inhibition"
+    - "pathway_perturbation"
+
+continual_learning:
+  peft_method: "lora"
+  lora_rank: 16
+  lora_alpha: 32
+  target_modules: ["q_proj", "v_proj", "latent_proj"]
+  replay_buffer_size: 5000
+  drift_tolerance_wasserstein: 0.05
+  promotion_regression_threshold: 0.98
+
+governance:
+  enforce_license_manifest: true
+  generate_model_cards: true
+  zero_leakage_audit:
+    donor_disjoint: true
+    family_disjoint: true
+    species_disjoint: true
+    temporal_cutoff_enforced: true
+  clinical_disclaimer_mandatory: true
