@@ -50,6 +50,13 @@ class BIFMBenchmarkSuite:
         passed = sum(1 for r in results.values() if r.get("passed", False))
 
         return {
+            "evaluation_type": "bifm_architectural_contract_verification",
+            "layer_status": "architectural_scaffold_prototype",
+            "is_foundation_model_pretrained": False,
+            "genuine_component_metrics": {
+                "graphsage_string_v12_test_roc_auc": 0.7866,
+                "graphsage_string_v12_test_pr_auc": 0.8149
+            },
             "total_benchmarks": total,
             "passed_benchmarks": passed,
             "pass_rate_percent": round((passed / total) * 100.0, 1),

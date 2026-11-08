@@ -66,7 +66,40 @@ def test_dataset_builder():
     assert "x" in data
     assert "edge_index" in data
     assert "labels" in data
-    assert data["x"].shape[1] == 1280
+    # ESM-2 150M has 640 dims, ESM-2 650M has 1280 dims
+    assert data["x"].shape[1] in (640, 1280)
+
+def test_evaluate_and_uninstantiated_stubs():
+    import pytest
+    from ai.interaction_prediction.models.graphsage import GraphSagePredictor
+    from ai.interaction_prediction.models.gat import Gatv2Predictor
+    from ai.interaction_prediction.models.seal import SealPredictor
+    from ai.interaction_prediction.models.graph_transformer import GraphTransformerPredictor
+
+    # Test GraphSagePredictor evaluate returns genuine metrics or raises
+    sage = GraphSagePredictor()
+    metrics = sage.evaluate()
+    assert "test_roc_auc" in metrics
+    assert metrics["test_roc_auc"] > 0.70
+
+    # Test unknown protein raises ValueError
+    with pytest.raises(ValueError, match="not found in trained STRING PPI interactome"):
+        sage.predict_link("NONEXISTENT_PROT_ABC", "NONEXISTENT_PROT_XYZ")
+
+    # Test uninstantiated stubs raise NotImplementedError on evaluate and predict
+    gat = Gatv2Predictor()
+    with pytest.raises(NotImplementedError):
+        gat.evaluate()
+    with pytest.raises(NotImplementedError):
+        gat.predict({})
+
+    seal = SealPredictor()
+    with pytest.raises(NotImplementedError):
+        seal.evaluate()
+
+    gt = GraphTransformerPredictor()
+    with pytest.raises(NotImplementedError):
+        gt.evaluate()
 
 if __name__ == "__main__":
     print("Running Phase 4 IPE backend tests...")
@@ -74,4 +107,5 @@ if __name__ == "__main__":
     test_feature_fusion()
     test_calibration_and_explainability()
     test_dataset_builder()
+    test_evaluate_and_uninstantiated_stubs()
     print("All Phase 4 IPE tests passed successfully!")

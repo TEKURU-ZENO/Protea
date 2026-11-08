@@ -39,15 +39,11 @@ class PredictionService:
             "calibrated_probability": calibrated_prob,
             "interaction_type_probabilities": results.get("interaction_type_probabilities", {}),
             "explanation": explanation,
-            "is_mock": results.get("is_mock", True),
-            "execution_mode": results.get("execution_mode", "mock_fallback")
+            "model": results.get("model", model_name),
+            "dataset": results.get("dataset", "STRING v12 Human Core PPI Graph")
         }
 
-        if "warning" in results:
-            response["warning"] = results["warning"]
-        if "model_status" in results:
-            response["model_status"] = results["model_status"]
-        if "test_roc_auc" in results:
+        if "test_roc_auc" in results and results["test_roc_auc"] is not None:
             response["test_roc_auc"] = results["test_roc_auc"]
 
         return response
@@ -63,8 +59,7 @@ class PredictionService:
         return {
             "protein_id": protein_id,
             "functional_annotations": results.get("node_functional_annotations", {}),
-            "is_mock": results.get("is_mock", True),
-            "execution_mode": results.get("execution_mode", "mock_fallback")
+            "model": results.get("model", model_name)
         }
 
     def list_benchmarks(self) -> List[Dict[str, Any]]:

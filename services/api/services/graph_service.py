@@ -7,14 +7,38 @@ class GraphService:
         self._driver = neo4j_client
 
     def get_neighbors(self, protein_id: str) -> List[Dict[str, Any]]:
-        """Queries Neo4j for immediate neighbors linked through Interaction nodes."""
+        """Queries Neo4j or local STRING graph for immediate interaction neighbors."""
         driver = self._driver.driver
         if not driver:
-            # Fallback mock neighbors
-            return [
-                {"protein_id": "P01308", "interaction_id": "int_1", "confidence": 0.94, "database": "STRING"},
-                {"protein_id": "Q15345", "interaction_id": "int_2", "confidence": 0.82, "database": "BioGRID"}
-            ]
+            import os, torch
+            if os.path.exists("data/string/processed_string_graph.pt"):
+                try:
+                    data = torch.load("data/string/processed_string_graph.pt", map_location="cpu")
+                    proteins = data.get("proteins", [])
+                    p_upper = protein_id.upper()
+                    if p_upper in proteins:
+                        idx = proteins.index(p_upper)
+                        pos_edges = data.get("pos_edges", [])
+                        neighbors = []
+                        for u, v in pos_edges:
+                            if u == idx:
+                                neighbors.append({
+                                    "protein_id": proteins[v],
+                                    "interaction_id": f"string_{idx}_{v}",
+                                    "confidence": 0.85,
+                                    "databases": ["STRING v12"]
+                                })
+                            elif v == idx:
+                                neighbors.append({
+                                    "protein_id": proteins[u],
+                                    "interaction_id": f"string_{v}_{idx}",
+                                    "confidence": 0.85,
+                                    "databases": ["STRING v12"]
+                                })
+                        return neighbors
+                except Exception as e:
+                    logger.warning(f"Error reading local STRING graph for neighbors: {e}")
+            return []
 
         try:
             with driver.session() as session:
@@ -40,15 +64,36 @@ class GraphService:
         """Traces the shortest connection chain between two proteins."""
         driver = self._driver.driver
         if not driver:
-            # Fallback mock path
-            return [
-                {"source": p1, "interaction": "int_123", "target": "P12345"},
-                {"source": "P12345", "interaction": "int_456", "target": p2}
-            ]
+            import os, torch
+            from collections import defaultdict, deque
+            if os.path.exists("data/string/processed_string_graph.pt"):
+                try:
+                    data = torch.load("data/string/processed_string_graph.pt", map_location="cpu")
+                    proteins = data.get("proteins", [])
+                    p1_up, p2_up = p1.upper(), p2.upper()
+                    if p1_up in proteins and p2_up in proteins:
+                        src_idx, dst_idx = proteins.index(p1_up), proteins.index(p2_up)
+                        adj = defaultdict(list)
+                        for u, v in data.get("pos_edges", []):
+                            adj[u].append(v)
+                            adj[v].append(u)
+                        queue = deque([[src_idx]])
+                        visited = {src_idx}
+                        while queue:
+                            path = queue.popleft()
+                            node = path[-1]
+                            if node == dst_idx:
+                                return [{"id": proteins[n], "label": "Protein", "properties": {"symbol": proteins[n]}} for n in path]
+                            for nxt in adj[node]:
+                                if nxt not in visited:
+                                    visited.add(nxt)
+                                    queue.append(path + [nxt])
+                except Exception as e:
+                    logger.warning(f"Error computing shortest path on local STRING graph: {e}")
+            return []
 
         try:
             with driver.session() as session:
-                # Tracing shortest path through the Interaction context nodes
                 query = """
                 MATCH path = shortestPath((p1:Protein {id: $p1_id})-[:PARTICIPATES_IN|OBSERVED_IN|SUPPORTS*..10]-(p2:Protein {id: $p2_id}))
                 RETURN path
@@ -57,7 +102,6 @@ class GraphService:
                 if not results:
                     return []
                 
-                # Parse path into node/edge objects for visualization
                 path_obj = results["path"]
                 nodes = []
                 for node in path_obj.nodes:
@@ -72,16 +116,23 @@ class GraphService:
         """Calculates graph counts and density statistics."""
         driver = self._driver.driver
         if not driver:
-            # Mock stats
-            return {
-                "proteins": 190531,
-                "genes": 45000,
-                "interactions": 21813816,
-                "pathways": 340,
-                "diseases": 12000,
-                "drugs": 8500,
-                "density": 0.0034
-            }
+            import os, torch
+            if os.path.exists("data/string/processed_string_graph.pt"):
+                try:
+                    data = torch.load("data/string/processed_string_graph.pt", map_location="cpu")
+                    num_proteins = len(data.get("proteins", []))
+                    num_edges = len(data.get("pos_edges", []))
+                    density = round(2.0 * num_edges / (num_proteins * (num_proteins - 1)), 4) if num_proteins > 1 else 0.0
+                    return {
+                        "proteins": num_proteins,
+                        "interactions": num_edges,
+                        "density": density,
+                        "dataset": "STRING v12 Human Core PPI Graph",
+                        "status": "active_local_graph"
+                    }
+                except Exception:
+                    pass
+            return {"proteins": 0, "interactions": 0, "status": "neo4j_offline"}
 
         try:
             with driver.session() as session:

@@ -26,11 +26,15 @@ class ExplainPayload(BaseModel):
 
 @router.post("/link")
 def predict_link(payload: LinkPredictionPayload):
-    """Predicts relationship link interaction presence between two biological entities.
-    Returns genuine trained GraphSAGE prediction or clearly labeled mock fallback.
+    """Predicts relationship link interaction presence between two biological entities
+    using trained GraphSAGE on STRING v12 interactome.
     """
     try:
         return prediction_service.predict_link(payload.source, payload.target, payload.model_name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -39,6 +43,10 @@ def predict_node(payload: NodePredictionPayload):
     """Predicts functional node categories classifications."""
     try:
         return prediction_service.predict_node(payload.protein_id, payload.model_name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -51,9 +59,12 @@ def predict_edge(payload: LinkPredictionPayload):
             "source": payload.source,
             "target": payload.target,
             "interaction_type_probabilities": res["interaction_type_probabilities"],
-            "is_mock": res.get("is_mock", True),
-            "execution_mode": res.get("execution_mode", "mock_fallback")
+            "model": res.get("model", payload.model_name)
         }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -71,8 +82,7 @@ def predict_batch(payload: BatchPredictionPayload):
                     "source": src,
                     "target": tgt,
                     "probability": res["calibrated_probability"],
-                    "is_mock": res.get("is_mock", True),
-                    "execution_mode": res.get("execution_mode", "mock_fallback")
+                    "model": res.get("model", payload.model_name)
                 })
             except Exception:
                 continue
@@ -100,9 +110,12 @@ def explain_prediction(payload: ExplainPayload):
         return {
             "query": {"source": payload.source, "target": payload.target},
             "explanations": res["explanation"],
-            "is_mock": res.get("is_mock", True),
-            "execution_mode": res.get("execution_mode", "mock_fallback")
+            "model": res.get("model", payload.model_name)
         }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -27,7 +27,10 @@ def execute_query(payload: QueryPayload):
     from services.api.core.neo4j import neo4j_client
     driver = neo4j_client.driver
     if not driver:
-        return {"status": "mock", "query": payload.query, "records": []}
+        raise HTTPException(
+            status_code=503,
+            detail="Neo4j service unavailable. Live Cypher queries require an active Neo4j connection."
+        )
     
     try:
         with driver.session() as session:

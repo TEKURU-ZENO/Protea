@@ -42,7 +42,7 @@ class BatchIngestRequest(BaseModel):
     fasta_content: str
     model_name: Optional[str] = "esm2"
 
-# Mock MLflow metric logger helper
+# MLflow telemetry logging helper
 def log_to_mlflow(metrics: Dict[str, float], params: Dict[str, Any]):
     try:
         # Just logging local trace telemetry. If MLflow client is installed, 

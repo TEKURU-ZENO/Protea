@@ -17,7 +17,7 @@ class GraphDatasetBuilder:
         """Fetches the active interactome from Neo4j or loads the real STRING PPI graph dataset."""
         driver = neo4j_client.driver
         if not driver:
-            # Check for local real STRING graph first before falling back to synthetic mock
+            # Check for local real STRING graph
             if os.path.exists(STRING_GRAPH_PATH):
                 try:
                     data = torch.load(STRING_GRAPH_PATH, map_location="cpu")
@@ -34,25 +34,15 @@ class GraphDatasetBuilder:
                         "edge_index": edge_index,
                         "labels": labels,
                         "node_mapping": data["proteins"],
-                        "is_mock": False,
                         "dataset": "STRING v12 Human Core PPI Graph"
                     }
                 except Exception as e:
                     logger.warning(f"[IPE BUILDER] Failed loading STRING dataset: {e}")
 
-            # Fallback explicitly labeled mock dataset for testing & offline mode
-            logger.warning("[IPE BUILDER] Neo4j and local STRING datasets offline. Initializing labeled fallback mock graph dataset.")
-            x = torch.randn(10, self.default_dim)
-            edge_index = torch.tensor([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]], dtype=torch.long)
-            labels = torch.tensor([1, 1, 1, 1, 1, 0, 0, 0, 0, 0], dtype=torch.float)
-            return {
-                "x": x,
-                "edge_index": edge_index,
-                "labels": labels,
-                "is_mock": True,
-                "execution_mode": "mock_fallback",
-                "warning": "MOCK GRAPH: Neo4j and local STRING datasets offline; returning synthetic graph."
-            }
+            raise FileNotFoundError(
+                "No active interactome graph available: Neo4j is offline and "
+                f"'{STRING_GRAPH_PATH}' was not found."
+            )
 
         try:
             with driver.session() as session:
@@ -96,21 +86,10 @@ class GraphDatasetBuilder:
                     "edge_index": edge_index,
                     "labels": labels_tensor,
                     "node_mapping": prot_list,
-                    "is_mock": False,
                     "dataset": "Neo4j Active Knowledge Graph"
                 }
         except Exception as e:
             logger.error(f"[IPE BUILDER] Neo4j graph data assembly failed: {e}")
-            x = torch.randn(10, self.default_dim)
-            edge_index = torch.tensor([[0, 1, 2, 3, 4], [1, 2, 3, 4, 0]], dtype=torch.long)
-            labels = torch.tensor([1, 1, 1, 1, 1], dtype=torch.float)
-            return {
-                "x": x,
-                "edge_index": edge_index,
-                "labels": labels,
-                "is_mock": True,
-                "execution_mode": "mock_fallback",
-                "warning": f"MOCK GRAPH: Neo4j assembly failed ({e}); returning synthetic graph."
-            }
+            raise RuntimeError(f"Neo4j graph data assembly failed: {e}")
 
 graph_dataset_builder = GraphDatasetBuilder()

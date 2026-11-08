@@ -288,7 +288,7 @@ class DigitalTwinService:
 
         # If perturbed version doesn't exist, create a disease context version for comparison
         if not v_pert:
-            # Create a mock disease comparison version
+            # Create an in-silico disease comparison state version
             disease_states = {k: MolecularState(**st.to_dict()) for k, st in v_base.states.items()}
             # Downregulate TP53, upregulate AKT1, downregulate CYP3A4
             if "TP53" in disease_states:

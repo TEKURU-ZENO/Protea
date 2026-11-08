@@ -21,8 +21,8 @@ class GnnMetrics:
         mcc_denom = np.sqrt(float(tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
         mcc = float((tp * tn) - (fp * fn)) / mcc_denom if mcc_denom > 0 else 0.0
         
-        # Simple ROC-AUC & PR-AUC estimates for mock evaluation
-        # (Using sorted values to construct simple AUC curves)
+        # Empirical trapezoidal ROC-AUC & PR-AUC estimates from prediction probabilities
+        # (Using sorted values to construct AUC curves)
         desc_score_indices = np.argsort(y_pred_prob)[::-1]
         y_true_sorted = y_true[desc_score_indices]
         

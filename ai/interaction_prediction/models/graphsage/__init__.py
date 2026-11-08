@@ -75,60 +75,48 @@ class GraphSagePredictor(BasePredictionModel):
                 self.is_live_loaded = False
 
     def predict_link(self, source_id: str, target_id: str) -> Dict[str, Any]:
-        """Predicts interaction probability between two proteins using trained GraphSAGE or explicitly labeled mock."""
+        """Predicts interaction probability between two proteins using trained GraphSAGE.
+        Raises ValueError if proteins are not in the indexed interactome.
+        """
         s_upper = source_id.upper()
         t_upper = target_id.upper()
 
-        if self.is_live_loaded and self.trained_model is not None and self.X is not None and self.msg_edge_index is not None:
-            if s_upper in self.node_to_idx and t_upper in self.node_to_idx:
-                u = self.node_to_idx[s_upper]
-                v = self.node_to_idx[t_upper]
-                query = torch.tensor([[u], [v]], dtype=torch.long, device=self.device)
+        if not self.is_live_loaded or self.trained_model is None or self.X is None or self.msg_edge_index is None:
+            raise RuntimeError("GraphSAGE trained STRING interactome model is not loaded.")
 
-                with torch.no_grad():
-                    logits = self.trained_model(self.X, self.msg_edge_index, query)
-                    prob = float(torch.sigmoid(logits).item())
+        missing = [p for p, u in [(source_id, s_upper), (target_id, t_upper)] if u not in self.node_to_idx]
+        if missing:
+            raise ValueError(
+                f"Protein(s) {missing} not found in trained STRING PPI interactome "
+                f"({len(self.node_to_idx)} proteins indexed). Live prediction requires proteins present in the interactome."
+            )
 
-                return {
-                    "link_probability": round(prob, 4),
-                    "interaction_type_probabilities": {
-                        "physical_association": round(prob * 0.75, 4),
-                        "functional_pathway": round(prob * 0.25, 4)
-                    },
-                    "node_functional_annotations": {
-                        "STRING_PPI_Cluster": round(prob, 4)
-                    },
-                    "is_mock": False,
-                    "execution_mode": "live_graphsage_string",
-                    "model_status": "trained_on_string_v12",
-                    "dataset": "STRING v12 Human Core PPI Graph",
-                    "test_roc_auc": self.genuine_metrics.get("test_roc_auc", 0.7866)
-                }
+        u = self.node_to_idx[s_upper]
+        v = self.node_to_idx[t_upper]
+        query = torch.tensor([[u], [v]], dtype=torch.long, device=self.device)
 
-        # Explicitly labeled mock fallback when protein is outside trained STRING graph or model is uninstantiated
-        logger.warning(f"[IPE SAGE] Query pair ({source_id}, {target_id}) not in trained STRING graph. Falling back to clearly labeled mock.")
+        with torch.no_grad():
+            logits = self.trained_model(self.X, self.msg_edge_index, query)
+            prob = float(torch.sigmoid(logits).item())
+
         return {
-            "link_probability": 0.50,
+            "link_probability": round(prob, 4),
             "interaction_type_probabilities": {
-                "unknown": 1.0
+                "physical_association": round(prob * 0.75, 4),
+                "functional_pathway": round(prob * 0.25, 4)
             },
-            "node_functional_annotations": {},
-            "is_mock": True,
-            "execution_mode": "mock_fallback",
-            "warning": f"MOCK PREDICTION: One or both query proteins ({source_id}, {target_id}) are not present in the trained STRING PPI graph; returning synthetic baseline."
+            "node_functional_annotations": {
+                "STRING_PPI_Cluster": round(prob, 4)
+            },
+            "model": "GraphSAGE",
+            "dataset": "STRING v12 Human Core PPI Graph",
+            "test_roc_auc": self.genuine_metrics.get("test_roc_auc")
         }
 
     def predict(self, data: Any) -> Dict[str, Any]:
         """Runs joint prediction from PyG data dict."""
-        if not self.is_live_loaded or "x" not in data:
-            return {
-                "link_probability": 0.50,
-                "interaction_type_probabilities": {"unknown": 1.0},
-                "node_functional_annotations": {},
-                "is_mock": True,
-                "execution_mode": "mock_fallback",
-                "warning": "MOCK PREDICTION: Live STRING graph offline; returning synthetic baseline."
-            }
+        if not self.is_live_loaded or "x" not in data or "edge_index" not in data:
+            raise ValueError("GraphSAGE model is not loaded or invalid data dict provided (requires 'x' and 'edge_index').")
 
         z = self.model(data["x"], data["edge_index"])
         src_idx = data.get("src_idx", 0)
@@ -143,8 +131,7 @@ class GraphSagePredictor(BasePredictionModel):
             "link_probability": link_prob,
             "interaction_type_probabilities": edge_classes,
             "node_functional_annotations": node_ann,
-            "is_mock": False,
-            "execution_mode": "live_inference"
+            "model": "GraphSAGE"
         }
 
     def train(self, data: Any, epochs: int = 15, lr: float = 0.005) -> Dict[str, Any]:
@@ -155,10 +142,32 @@ class GraphSagePredictor(BasePredictionModel):
         labels = data.get("labels", torch.tensor([1, 1], dtype=torch.float))
         return self.trainer.fit(x, edge_index, labels)
 
-    def evaluate(self, data: Any) -> Dict[str, float]:
+    def evaluate(self, data: Any = None) -> Dict[str, float]:
+        """Evaluates model performance metrics on provided dataset or returns verified test metrics.
+        Raises RuntimeError if neither a valid evaluation dataset is provided nor test metrics are available.
+        """
+        if data is not None and isinstance(data, dict) and "x" in data and "edge_index" in data and "labels" in data:
+            self.model.eval()
+            with torch.no_grad():
+                x = data["x"].to(self.device)
+                edge_index = data["edge_index"].to(self.device)
+                labels = data["labels"].to(self.device)
+                z = self.model(x, edge_index)
+                z_src = z[edge_index[0]]
+                z_dst = z[edge_index[1]]
+                logits = self.model.predict_link(z_src, z_dst).squeeze(-1)
+                probs = torch.sigmoid(logits).cpu().numpy()
+                y = labels.cpu().numpy()
+                try:
+                    from sklearn.metrics import roc_auc_score, average_precision_score
+                    roc_auc = float(roc_auc_score(y, probs))
+                    pr_auc = float(average_precision_score(y, probs))
+                    return {"test_roc_auc": roc_auc, "test_pr_auc": pr_auc}
+                except Exception as e:
+                    logger.warning(f"[IPE SAGE] Dynamic evaluation calculation error: {e}")
         if self.genuine_metrics:
             return self.genuine_metrics
-        return {"test_roc_auc": 0.7866, "test_pr_auc": 0.8149}
+        raise RuntimeError("No evaluation dataset provided and no genuine precomputed test metrics available.")
 
     def save(self, path: str):
         torch.save(self.model.state_dict(), path)
